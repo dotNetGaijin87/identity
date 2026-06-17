@@ -386,9 +386,9 @@ input[type='checkbox'] {
   font-size: 0.9rem;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  transition:
-    color 0.12s ease,
-    border-color 0.12s ease;
+  /* Only fade the text; the active underline snaps on/off so a tab being
+     deactivated never shows a half-faded purple border. */
+  transition: color 0.12s ease;
 }
 .tab:hover {
   color: var(--color-text);
