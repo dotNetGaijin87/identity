@@ -7,9 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Repository is the persistence port for admins and sessions. The service depends
-// on this interface; postgres.go provides the sqlc-backed adapter. Lookups return
-// ErrNotFound when no row matches.
+// Lookups return ErrNotFound when no row matches.
 type Repository interface {
 	AdminByUsername(ctx context.Context, username string) (Admin, error)
 	AdminByID(ctx context.Context, id uuid.UUID) (Admin, error)

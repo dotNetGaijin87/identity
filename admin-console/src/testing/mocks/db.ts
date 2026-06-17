@@ -1,9 +1,5 @@
 import { factory, primaryKey, manyOf } from '@mswjs/data';
 
-/**
- * In-memory backend that mirrors the entity model. Gives ORM-style
- * findMany/create/update/delete plus relationships (user → roles).
- */
 export const db = factory({
   tenant: {
     id: primaryKey(String),
@@ -64,14 +60,13 @@ export const db = factory({
   },
 });
 
-/** Monotonic id generator (avoids Math.random/Date for deterministic tests). */
+// Monotonic, so ids/timestamps stay deterministic across test runs.
 let seq = 0;
 export const uid = (prefix: string): string => {
   seq += 1;
   return `${prefix}_${seq}`;
 };
 
-/** Deterministic, secret-looking string generator for confidential clients. */
 let secretSeq = 0;
 export const genSecret = (): string => {
   secretSeq += 1;
@@ -80,11 +75,10 @@ export const genSecret = (): string => {
   return `cs_${a}${b}${a}`.slice(0, 35);
 };
 
-/** A fixed timestamp base so created entities sort predictably in tests. */
 let clock = 1_700_000_000_000;
 const nextTime = () => (clock += 1000);
 
-// ── Session (stands in for an httpOnly auth cookie the mock would set) ──────────
+// Stands in for the httpOnly auth cookie the mock would otherwise set.
 let currentAdminId: string | null = null;
 export const session = {
   get: () => currentAdminId,
@@ -101,7 +95,6 @@ function drain() {
   db.adminUser.deleteMany({ where: {} });
 }
 
-/** Wipe and re-seed the DB to a known state. Called on boot and before each test. */
 export function seedDb() {
   drain();
   currentAdminId = null;

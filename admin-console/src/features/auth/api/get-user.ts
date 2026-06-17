@@ -4,7 +4,6 @@ import { AdminUserSchema, type AdminUser } from '../types';
 
 export const authUserKey = ['auth-user'] as const;
 
-/** Restore the session from the cookie-backed `/auth/me`. 401 → query error (treated as logged-out). */
 export const getAuthUser = async (): Promise<AdminUser> => {
   // notifyOnError: false — being logged out is normal, not a toast-worthy failure.
   const data = await apiClient.get<unknown>('/auth/me', { notifyOnError: false });

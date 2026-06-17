@@ -9,8 +9,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Service holds the user use cases. It depends on the Repository port and the
-// RoleChecker port (for validating role assignments against the tenant).
 type Service struct {
 	repo  Repository
 	roles RoleChecker
@@ -63,7 +61,7 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, in UpdateInput) (Use
 	return s.repo.Update(ctx, id, in)
 }
 
-// AssignRoles replaces a user's roles, keeping only ids that exist in the tenant.
+// AssignRoles keeps only role ids that exist in the tenant.
 func (s *Service) AssignRoles(ctx context.Context, tenantID, userID uuid.UUID, roleIDs []uuid.UUID) (User, error) {
 	if _, err := s.repo.GetByID(ctx, userID); err != nil {
 		return User{}, err
@@ -82,7 +80,7 @@ func (s *Service) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.repo.Delete(ctx, id)
 }
 
-// Authenticate verifies an end-user's credentials (used by the OIDC login page).
+// Authenticate is used by the OIDC login page.
 func (s *Service) Authenticate(ctx context.Context, tenantID uuid.UUID, username, password string) (User, error) {
 	id, enabled, hash, err := s.repo.Credentials(ctx, tenantID, username)
 	if err != nil || !enabled || hash == "" {
@@ -94,7 +92,6 @@ func (s *Service) Authenticate(ctx context.Context, tenantID uuid.UUID, username
 	return s.repo.GetByID(ctx, id)
 }
 
-// SetPassword sets/replaces an end-user's password.
 func (s *Service) SetPassword(ctx context.Context, userID uuid.UUID, password string) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {

@@ -15,7 +15,6 @@ var (
 	idAlgs      = map[string]bool{"RS256": true, "ES256": true, "PS256": true}
 )
 
-// Service holds the client use cases. Depends on the Repository port only.
 type Service struct {
 	repo Repository
 }
@@ -32,7 +31,7 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID) (Client, error) {
 	return s.repo.GetByID(ctx, id)
 }
 
-// ByClientID resolves a client by its OAuth client_id within a tenant (used by OIDC).
+// ByClientID is used by the OIDC module.
 func (s *Service) ByClientID(ctx context.Context, tenantID uuid.UUID, clientID string) (Client, error) {
 	return s.repo.GetByClientIDInTenant(ctx, tenantID, clientID)
 }

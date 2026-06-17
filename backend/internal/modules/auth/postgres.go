@@ -11,7 +11,6 @@ import (
 	"idp/internal/platform/database/store"
 )
 
-// postgresRepository is the sqlc-backed adapter implementing Repository.
 type postgresRepository struct {
 	q *store.Queries
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Service holds the tenant use cases. It depends on the Repository port only.
 type Service struct {
 	repo Repository
 }
@@ -25,7 +24,7 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID) (Tenant, error) {
 	return s.repo.GetByID(ctx, id)
 }
 
-// ByName resolves a tenant by its name (used by the OIDC issuer routing).
+// ByName is used by the OIDC issuer routing.
 func (s *Service) ByName(ctx context.Context, name string) (Tenant, error) {
 	return s.repo.GetByName(ctx, name)
 }
@@ -57,7 +56,6 @@ func (s *Service) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.repo.Delete(ctx, id)
 }
 
-// Bootstrap seeds a couple of demo tenants into an empty store.
 func (s *Service) Bootstrap(ctx context.Context) error {
 	existing, err := s.repo.List(ctx)
 	if err != nil {

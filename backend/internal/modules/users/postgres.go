@@ -12,8 +12,7 @@ import (
 	"idp/internal/platform/database/store"
 )
 
-// postgresRepository is the sqlc-backed adapter. It keeps the pool to run the
-// role-assignment replacement (delete + insert) inside a transaction.
+// The pool is kept to run the role-assignment replacement inside a transaction.
 type postgresRepository struct {
 	pool *pgxpool.Pool
 	q    *store.Queries

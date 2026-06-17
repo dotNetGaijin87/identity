@@ -18,7 +18,6 @@ describe('EditUser — role assignment (integration)', () => {
       path: 'tenants/:tenantId/users/:userId',
     });
 
-    // User details load.
     expect(await screen.findByRole('heading', { name: /user: jdoe/i })).toBeInTheDocument();
 
     // jdoe is seeded with the admin + viewer roles, but not developer.
@@ -26,7 +25,6 @@ describe('EditUser — role assignment (integration)', () => {
     expect(screen.getByRole('checkbox', { name: /full administrative access/i })).toBeChecked();
     expect(developer).not.toBeChecked();
 
-    // Assign the developer role and persist.
     await userEvent.click(developer);
     await userEvent.click(screen.getByRole('button', { name: /save role assignment/i }));
 

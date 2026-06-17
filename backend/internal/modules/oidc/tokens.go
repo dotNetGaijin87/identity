@@ -8,8 +8,7 @@ import (
 	"github.com/zitadel/oidc/v3/pkg/op"
 )
 
-// tokenRecord is what we remember about an issued access/refresh token so that
-// userinfo and the refresh grant can be served. Kept in memory for now.
+// tokenRecord backs userinfo and the refresh grant; kept in memory for now.
 type tokenRecord struct {
 	subject  string
 	audience []string
@@ -18,7 +17,6 @@ type tokenRecord struct {
 	expiry   time.Time
 }
 
-// refreshTokenRequest implements op.RefreshTokenRequest for the refresh grant.
 type refreshTokenRequest struct {
 	subject  string
 	audience []string
@@ -37,7 +35,6 @@ func (r *refreshTokenRequest) SetCurrentScopes(s []string) { r.scopes = s }
 
 var _ op.RefreshTokenRequest = (*refreshTokenRequest)(nil)
 
-// setUserClaims fills standard OIDC claims based on the granted scopes.
 func setUserClaims(userinfo *oidc.UserInfo, user AuthUser, scopes []string) {
 	userinfo.Subject = user.ID.String()
 	for _, scope := range scopes {

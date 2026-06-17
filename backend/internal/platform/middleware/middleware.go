@@ -1,4 +1,3 @@
-// Package middleware holds cross-cutting HTTP middleware for the API.
 package middleware
 
 import (
@@ -11,7 +10,7 @@ import (
 	chimw "github.com/go-chi/chi/v5/middleware"
 )
 
-// CORS allows the SPA origin to call the API with credentials (for the refresh cookie).
+// Allow-Credentials is set so the SPA can send the refresh cookie.
 func CORS(allowOrigin string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -29,8 +28,7 @@ func CORS(allowOrigin string) func(http.Handler) http.Handler {
 	}
 }
 
-// RateLimit is a fixed-window, per-client-IP limiter. Used to throttle login
-// attempts. Returns 429 with a {message} body when the window's quota is exceeded.
+// RateLimit is a fixed-window, per-client-IP limiter used to throttle login attempts.
 func RateLimit(max int, window time.Duration) func(http.Handler) http.Handler {
 	type bucket struct {
 		count int
@@ -69,7 +67,6 @@ func RateLimit(max int, window time.Duration) func(http.Handler) http.Handler {
 	}
 }
 
-// RequestLogger logs method, path, status, and duration for each request.
 func RequestLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()

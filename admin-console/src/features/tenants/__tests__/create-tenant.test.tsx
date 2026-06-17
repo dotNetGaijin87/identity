@@ -16,7 +16,7 @@ describe('CreateTenant (integration)', () => {
     await userEvent.type(screen.getByLabelText(/tenant name/i), 'new-tenant');
     await userEvent.click(screen.getByRole('button', { name: /create tenant/i }));
 
-    // On success a toast is raised (rendered by the test harness' <Notifications/>).
+    // Toast comes from the test harness' <Notifications/>.
     expect(await screen.findByText(/tenant "new-tenant" created/i)).toBeInTheDocument();
   });
 });

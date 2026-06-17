@@ -65,7 +65,6 @@ func TestCreate_SecretAndNormalization(t *testing.T) {
 		t.Fatalf("blank clientId: want ErrClientIDRequired, got %v", err)
 	}
 
-	// Public client: no secret. Bad pkce/alg/lifespan get normalized.
 	pub, err := svc.Create(ctx, tenant, WriteInput{ClientID: "spa", PublicClient: true, PKCE: "bogus", IDTokenSignatureAlg: "nope", AccessTokenLifespan: 0})
 	if err != nil {
 		t.Fatal(err)
@@ -77,7 +76,6 @@ func TestCreate_SecretAndNormalization(t *testing.T) {
 		t.Errorf("normalization failed: pkce=%q alg=%q ttl=%d", pub.PKCE, pub.IDTokenSignatureAlg, pub.AccessTokenLifespan)
 	}
 
-	// Confidential client: a secret is generated.
 	conf, err := svc.Create(ctx, tenant, WriteInput{ClientID: "svc", PublicClient: false})
 	if err != nil {
 		t.Fatal(err)
@@ -86,7 +84,6 @@ func TestCreate_SecretAndNormalization(t *testing.T) {
 		t.Error("confidential client should get a generated secret")
 	}
 
-	// Duplicate clientId.
 	if _, err := svc.Create(ctx, tenant, WriteInput{ClientID: "spa", PublicClient: true}); !errors.Is(err, ErrClientIDTaken) {
 		t.Fatalf("duplicate: want ErrClientIDTaken, got %v", err)
 	}

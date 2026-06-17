@@ -10,8 +10,7 @@ import (
 	"idp/internal/modules/users"
 )
 
-// seedDemoData populates the "acme" tenant with the demo roles and users (the
-// composition root is the right place to orchestrate across modules). Idempotent.
+// seedDemoData is idempotent.
 func (a *App) seedDemoData(ctx context.Context) error {
 	tenantList, err := a.tenants.Service().List(ctx)
 	if err != nil {
@@ -27,7 +26,6 @@ func (a *App) seedDemoData(ctx context.Context) error {
 		return nil
 	}
 
-	// Roles
 	existingRoles, err := a.roles.Service().List(ctx, acmeID)
 	if err != nil {
 		return err
@@ -51,7 +49,6 @@ func (a *App) seedDemoData(ctx context.Context) error {
 		}
 	}
 
-	// Users
 	existingUsers, err := a.users.Service().List(ctx, acmeID)
 	if err != nil {
 		return err
@@ -76,7 +73,7 @@ func (a *App) seedDemoData(ctx context.Context) error {
 		}
 	}
 
-	// Give the demo end-users a password so they can sign in via OIDC (idempotent).
+	// Give the demo end-users a password so they can sign in via OIDC.
 	demoUsers, err := a.users.Service().List(ctx, acmeID)
 	if err != nil {
 		return err
@@ -89,7 +86,6 @@ func (a *App) seedDemoData(ctx context.Context) error {
 		}
 	}
 
-	// Clients
 	existingClients, err := a.clients.Service().List(ctx, acmeID)
 	if err != nil {
 		return err

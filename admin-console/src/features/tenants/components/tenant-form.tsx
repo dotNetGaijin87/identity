@@ -13,7 +13,7 @@ export type TenantFormProps = {
   isSubmitting: boolean;
 };
 
-/** Presentational create/edit form. The `name` is fixed once a tenant exists. */
+// `name` is fixed once a tenant exists.
 export function TenantForm({
   mode,
   defaultValues,

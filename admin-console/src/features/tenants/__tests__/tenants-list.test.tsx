@@ -9,7 +9,6 @@ describe('TenantsList (integration, mocked API)', () => {
     appRender(<TenantsList />, { route: '/tenants' });
 
     expect(await screen.findByRole('heading', { name: /tenants/i })).toBeInTheDocument();
-    // Seeded tenants.
     expect(await screen.findByText('system')).toBeInTheDocument();
     expect(await screen.findByText('acme')).toBeInTheDocument();
   });

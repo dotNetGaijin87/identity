@@ -6,8 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Repository is the persistence port for users. List/Get return users with their
-// RoleIDs populated. SetRoles replaces a user's role set atomically.
+// SetRoles replaces a user's role set atomically.
 type Repository interface {
 	ListByTenant(ctx context.Context, tenantID uuid.UUID) ([]User, error)
 	GetByID(ctx context.Context, id uuid.UUID) (User, error)

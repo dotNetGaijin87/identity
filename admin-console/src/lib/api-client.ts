@@ -40,7 +40,7 @@ async function request<T>(
     response = await fetch(buildUrl(path, params), {
       method,
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // send the session/auth cookie the mock sets
+      credentials: 'include',
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch (cause) {

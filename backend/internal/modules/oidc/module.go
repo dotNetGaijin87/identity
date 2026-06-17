@@ -1,15 +1,10 @@
 // Package oidc is the OpenID Connect provider — the tokens this IdP issues to
 // client apps (distinct from the admin console's own cookie login). Built on
-// github.com/zitadel/oidc so the protocol and crypto are library-handled; we
-// supply storage (clients/users/keys) and the hosted login page.
+// github.com/zitadel/oidc; we supply storage (clients/users/keys) and the login page.
 //
 // Multi-tenant by issuer path: each tenant has its own issuer
 // (e.g. http://host/oidc/acme) and a tenant-scoped provider, built lazily and
 // cached. Two tenants can therefore reuse the same client_id.
-//
-//	5a: per-tenant discovery + JWKS.
-//	5b: authorize + hosted login → auth-code (PKCE) issuance.
-//	5c: token + userinfo.
 package oidc
 
 import (
@@ -33,8 +28,7 @@ type Module struct {
 	engines map[string]http.Handler // tenant name -> composed handler (login + provider)
 }
 
-// New builds the OIDC module. baseURL is the externally-visible origin
-// (e.g. http://localhost:8080); each tenant's issuer is baseURL + "/oidc/" + name.
+// Each tenant's issuer is baseURL + "/oidc/" + name.
 func New(baseURL string, tenants TenantResolver, clients ClientStore, users UserStore) (*Module, error) {
 	signing, err := newSigningKey("sig-1")
 	if err != nil {
@@ -50,7 +44,6 @@ func New(baseURL string, tenants TenantResolver, clients ClientStore, users User
 	}, nil
 }
 
-// Handler dispatches /oidc/{tenant}/* to the tenant's engine.
 func (m *Module) Handler() http.Handler {
 	return http.HandlerFunc(m.dispatch)
 }
@@ -92,11 +85,11 @@ func (m *Module) engineFor(ref TenantRef) (http.Handler, error) {
 	login := &loginHandler{storage: storage, callbackURL: op.AuthCallbackURL(provider)}
 
 	router := chi.NewRouter()
-	router.Get("/login", login.show) // our hosted login page
+	router.Get("/login", login.show)
 	router.Post("/login", login.submit)
 	// Enforce PKCE in front of the provider's /authorize, then delegate to it.
 	router.Get("/authorize", m.authorizeGuard(storage, provider))
-	router.Handle("/*", provider) // everything else → the OIDC provider
+	router.Handle("/*", provider)
 
 	m.engines[ref.Name] = router
 	return router, nil

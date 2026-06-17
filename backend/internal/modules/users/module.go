@@ -8,8 +8,6 @@ type Module struct {
 	svc *Service
 }
 
-// New builds the module. The composition root supplies the user Repository and a
-// RoleChecker (the roles service) for assignment validation.
 func New(repo Repository, roles RoleChecker) *Module {
 	return &Module{svc: NewService(repo, roles)}
 }
@@ -23,5 +21,4 @@ func (m *Module) RegisterRoutes(r chi.Router) {
 	r.Delete("/tenants/{tenantId}/users/{id}", m.handleDelete)
 }
 
-// Service exposes the user service for demo seeding by the composition root.
 func (m *Module) Service() *Service { return m.svc }

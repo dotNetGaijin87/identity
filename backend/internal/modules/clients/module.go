@@ -23,8 +23,7 @@ func (m *Module) RegisterRoutes(r chi.Router) {
 	r.Delete("/tenants/{tenantId}/clients/{id}", m.handleDelete)
 }
 
-// Service exposes the client service for demo seeding by the composition root.
 func (m *Module) Service() *Service { return m.svc }
 
-// Bootstrap is a no-op placeholder kept for symmetry with other modules.
+// Bootstrap is a no-op kept for symmetry with other modules.
 func (m *Module) Bootstrap(_ context.Context) error { return nil }

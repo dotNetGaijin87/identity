@@ -10,8 +10,6 @@ import (
 	"idp/internal/platform/database/store"
 )
 
-// postgresRepository is the sqlc-backed adapter implementing the Repository port.
-// This is the only file in the module that knows about the persistence layer.
 type postgresRepository struct {
 	q *store.Queries
 }

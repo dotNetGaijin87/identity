@@ -27,7 +27,6 @@ func main() {
 
 	ctx := context.Background()
 
-	// Apply pending migrations (embedded) before serving.
 	if err := database.Migrate(cfg.DatabaseURL, migrations.FS); err != nil {
 		logger.Error("migrate", "err", err)
 		os.Exit(1)

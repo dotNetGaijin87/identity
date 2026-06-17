@@ -1,9 +1,7 @@
 import { Button, type ButtonProps } from './button';
 
-/**
- * Storybook-style Component Story Format catalog for <Button>. Self-typed so it
- * compiles without the Storybook runtime; wire `@storybook/react` to view it live.
- */
+// Self-typed so it compiles without the Storybook runtime; wire up
+// `@storybook/react` to view it live.
 type Story = { name: string; args: ButtonProps };
 
 const meta = {

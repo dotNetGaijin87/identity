@@ -4,8 +4,7 @@ import { roleHandlers } from './handlers/roles';
 import { clientHandlers } from './handlers/clients';
 import { userHandlers } from './handlers/users';
 
-// Full set — used by the test server so Vitest stays self-contained and
-// independent of the backend.
+// Full set — keeps the Vitest server self-contained, independent of the backend.
 export const handlers = [
   ...authHandlers,
   ...tenantHandlers,
@@ -14,6 +13,6 @@ export const handlers = [
   ...clientHandlers,
 ];
 
-// Dev set — every resource now has a Go backend module, so nothing is mocked in
-// the running app. (Kept for the incremental-migration mechanism.)
+// Dev set — every resource now has a real backend, so nothing is mocked in the
+// running app. Kept as the hook for incremental migration.
 export const devHandlers: typeof handlers = [];

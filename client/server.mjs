@@ -1,25 +1,15 @@
-// Demo relying-party (RP) app for the IdP.
-//
-// Exercises the end-user OIDC login flow against a tenant:
-//   browser → /login → IdP /authorize → IdP hosted login (jdoe/password)
-//           → /callback → exchange code (server-side, PKCE) → show user.
-//
-// Zero dependencies (Node 20+ http + fetch + crypto). On startup it registers
-// itself as a public client in the tenant via the management API, so you only
-// need the backend running. Run:  node server.mjs
 import http from 'node:http';
 import crypto from 'node:crypto';
 
 const PORT = Number(process.env.PORT || 3000);
-// API: where this server reaches the backend (server-side calls + admin registration
-// + token/userinfo). PUBLIC_BASE: the browser-facing origin used for redirects.
-// They differ under Docker (API=http://backend:8080, PUBLIC_BASE=http://localhost:8080)
-// and are the same for a plain local run.
+// API is the server-side backend origin; PUBLIC_BASE is the browser-facing origin
+// for redirects. They differ under Docker (API=http://backend:8080,
+// PUBLIC_BASE=http://localhost:8080) and match for a plain local run.
 const API = process.env.API_URL || 'http://localhost:8080';
 const PUBLIC_BASE = process.env.PUBLIC_BASE || API;
 const TENANT = process.env.TENANT || 'acme';
-const ISSUER = `${API}/oidc/${TENANT}`; // server-side (token, userinfo)
-const ISSUER_PUBLIC = `${PUBLIC_BASE}/oidc/${TENANT}`; // browser (authorize)
+const ISSUER = `${API}/oidc/${TENANT}`;
+const ISSUER_PUBLIC = `${PUBLIC_BASE}/oidc/${TENANT}`;
 const CLIENT_ID = 'demo-app';
 const REDIRECT_URI = `http://localhost:${PORT}/callback`;
 const SCOPE = 'openid profile email offline_access';
@@ -27,7 +17,7 @@ const SCOPE = 'openid profile email offline_access';
 const b64url = (b) => Buffer.from(b).toString('base64url');
 const esc = (s) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const sessions = new Map(); // state -> { verifier }
+const sessions = new Map();
 
 function makePkce() {
   const verifier = b64url(crypto.randomBytes(32));

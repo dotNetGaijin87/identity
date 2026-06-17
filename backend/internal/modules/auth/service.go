@@ -14,7 +14,7 @@ import (
 	"idp/internal/platform/httpx"
 )
 
-// AdminDTO is the client-facing admin shape (never includes the password hash).
+// AdminDTO never includes the password hash.
 type AdminDTO struct {
 	ID       string `json:"id"`
 	Username string `json:"username"`
@@ -22,7 +22,6 @@ type AdminDTO struct {
 }
 
 // Service implements admin authentication with opaque server-side sessions (BFF).
-// It depends on the Repository port only — no knowledge of SQL.
 type Service struct {
 	repo       Repository
 	sessionTTL time.Duration
@@ -41,8 +40,7 @@ var (
 	errNotAuthenticated   = httpx.Unauthorized("Not authenticated")
 )
 
-// Login verifies credentials and opens a session, returning the admin and the
-// raw session token (the handler sets it as an httpOnly cookie).
+// Login returns the raw session token; the handler sets it as an httpOnly cookie.
 func (s *Service) Login(ctx context.Context, username, password string) (AdminDTO, string, error) {
 	admin, err := s.repo.AdminByUsername(ctx, username)
 	if err != nil {
@@ -62,7 +60,6 @@ func (s *Service) Login(ctx context.Context, username, password string) (AdminDT
 	return toDTO(admin), raw, nil
 }
 
-// ResolveSession returns the admin id for a valid, unexpired session token.
 func (s *Service) ResolveSession(ctx context.Context, raw string) (uuid.UUID, error) {
 	if raw == "" {
 		return uuid.Nil, errNotAuthenticated
@@ -74,7 +71,6 @@ func (s *Service) ResolveSession(ctx context.Context, raw string) (uuid.UUID, er
 	return session.AdminID, nil
 }
 
-// AdminByID loads an admin (used by /me once the session is resolved).
 func (s *Service) AdminByID(ctx context.Context, id uuid.UUID) (AdminDTO, error) {
 	admin, err := s.repo.AdminByID(ctx, id)
 	if err != nil {
@@ -83,7 +79,7 @@ func (s *Service) AdminByID(ctx context.Context, id uuid.UUID) (AdminDTO, error)
 	return toDTO(admin), nil
 }
 
-// Logout deletes a session (best-effort).
+// Logout is best-effort.
 func (s *Service) Logout(ctx context.Context, raw string) {
 	if raw != "" {
 		_ = s.repo.DeleteSession(ctx, hashToken(raw))

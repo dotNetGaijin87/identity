@@ -1,6 +1,5 @@
 // Package app is the composition root: it builds each module's adapter →
-// service → transport, injects cross-module dependencies as interfaces, and
-// mounts every module under /api (admin routes behind the auth middleware).
+// service → transport and mounts every module under /api.
 package app
 
 import (
@@ -25,7 +24,6 @@ import (
 	"idp/internal/platform/middleware"
 )
 
-// App is the assembled application: an HTTP handler plus a bootstrap hook.
 type App struct {
 	Handler http.Handler
 	auth    *auth.Module
@@ -36,18 +34,15 @@ type App struct {
 	oidc    *oidc.Module
 }
 
-// New constructs all modules (adapter → service → module) and the router.
 func New(cfg config.Config, pool *pgxpool.Pool) (*App, error) {
 	q := store.New(pool)
 
 	authMod := auth.New(auth.NewPostgresRepository(q), cfg)
 	tenantsMod := tenants.New(tenants.NewPostgresRepository(q))
 	rolesMod := roles.New(roles.NewPostgresRepository(q))
-	// users depends on the roles service (RoleChecker port) for assignment validation.
 	usersMod := users.New(users.NewPostgresRepository(pool), rolesMod.Service())
 	clientsMod := clients.New(clients.NewPostgresRepository(q))
 
-	// OIDC provider (the tokens this IdP issues to client apps). Per-tenant issuer.
 	oidcMod, err := oidc.New(
 		cfg.OIDCBaseURL,
 		tenantResolver{svc: tenantsMod.Service()},
@@ -70,9 +65,8 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*App, error) {
 	})
 
 	r.Route("/api", func(api chi.Router) {
-		authMod.RegisterRoutes(api) // /auth/* (login & logout public; /me protected)
+		authMod.RegisterRoutes(api)
 
-		// Every other admin resource requires a valid session.
 		api.Group(func(protected chi.Router) {
 			protected.Use(authMod.Authenticate)
 			tenantsMod.RegisterRoutes(protected)
@@ -82,7 +76,6 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*App, error) {
 		})
 	})
 
-	// Public OIDC endpoints (discovery, jwks, authorize, token, …) per tenant — not behind admin auth.
 	r.Handle("/oidc/{tenant}/*", oidcMod.Handler())
 
 	return &App{
@@ -96,8 +89,7 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*App, error) {
 	}, nil
 }
 
-// tenantResolver adapts the tenants service to the oidc.TenantResolver port,
-// keeping the oidc module decoupled from the tenants module's domain types.
+// These adapters keep the oidc module decoupled from other modules' domain types.
 type tenantResolver struct {
 	svc *tenants.Service
 }
@@ -113,7 +105,6 @@ func (t tenantResolver) TenantByName(ctx context.Context, name string) (oidc.Ten
 	return oidc.TenantRef{ID: tenant.ID, Name: tenant.Name}, true, nil
 }
 
-// clientStore adapts the clients service to the oidc.ClientStore port.
 type clientStore struct {
 	svc *clients.Service
 }
@@ -141,7 +132,6 @@ func (c clientStore) ClientByClientID(ctx context.Context, tenantID uuid.UUID, c
 	}, true, nil
 }
 
-// userStore adapts the users service to the oidc.UserStore port.
 type userStore struct {
 	svc *users.Service
 }
@@ -178,7 +168,6 @@ func toAuthUser(u users.User) oidc.AuthUser {
 	}
 }
 
-// Bootstrap runs one-time startup seeding for each module + demo data.
 func (a *App) Bootstrap(ctx context.Context) error {
 	if err := a.auth.Bootstrap(ctx); err != nil {
 		return err

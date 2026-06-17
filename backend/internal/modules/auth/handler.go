@@ -26,7 +26,7 @@ func (m *Module) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	m.setSessionCookie(w, token)
-	httpx.JSON(w, http.StatusOK, admin) // returns { id, username, email }
+	httpx.JSON(w, http.StatusOK, admin)
 }
 
 func (m *Module) handleLogout(w http.ResponseWriter, r *http.Request) {

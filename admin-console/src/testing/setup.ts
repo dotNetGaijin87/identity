@@ -5,11 +5,11 @@ import { server } from './mocks/server';
 import { seedDb } from './mocks/db';
 import { notificationsStore } from '@/stores/notifications';
 
-// One mock layer for every test. Fail loudly on requests no handler covers.
+// Fail loudly on requests no handler covers.
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 
 beforeEach(() => {
-  seedDb(); // deterministic data + cleared session before each test
+  seedDb();
   notificationsStore.getState().clear();
 });
 

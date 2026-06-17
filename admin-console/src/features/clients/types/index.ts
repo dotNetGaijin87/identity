@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-/** Standard OIDC scopes a client may request. */
 export const CLIENT_SCOPES = [
   'openid',
   'profile',
@@ -32,15 +31,12 @@ export const ClientSchema = z.object({
   homeUrl: z.string(),
   redirectUris: z.array(z.string()),
   postLogoutRedirectUris: z.array(z.string()),
-  // Capabilities (grant types)
   directAccessGrants: z.boolean(),
   serviceAccounts: z.boolean(),
   implicitFlow: z.boolean(),
   deviceFlow: z.boolean(),
-  // Authentication & security
   pkce: z.enum(PKCE_METHODS),
   consentRequired: z.boolean(),
-  // Tokens & session
   accessTokenLifespan: z.number(), // seconds
   idTokenSignatureAlg: z.enum(ID_TOKEN_ALGS),
   defaultScopes: z.array(z.string()),
@@ -97,7 +93,6 @@ export const clientFormSchema = z.object({
 });
 export type ClientFormValues = z.infer<typeof clientFormSchema>;
 
-// ── Access-token lifespan conversion (seconds ⇄ value + unit) ──────────────────
 const UNIT_SECONDS: Record<LifespanUnit, number> = { seconds: 1, minutes: 60, hours: 3600 };
 
 export const lifespanToSeconds = (value: number, unit: LifespanUnit): number =>

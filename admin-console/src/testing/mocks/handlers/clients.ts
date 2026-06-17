@@ -30,7 +30,6 @@ const num = (v: unknown, fallback: number): number =>
 const oneOf = (v: unknown, allowed: string[], fallback: string): string =>
   typeof v === 'string' && allowed.includes(v) ? v : fallback;
 
-/** Shape a client entity into the API DTO (JSON list fields → arrays, normalized enums). */
 const toClientDto = (c: ClientEntity) => ({
   id: c.id,
   tenantId: c.tenantId,
@@ -57,7 +56,6 @@ const toClientDto = (c: ClientEntity) => ({
   createdAt: c.createdAt,
 });
 
-/** Fields shared by create and update, read from a request body. */
 const readClientFields = (body: Record<string, unknown> | null, publicClient: boolean) => ({
   name: str(body?.name),
   description: str(body?.description),

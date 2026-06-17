@@ -10,7 +10,7 @@ const EMPTY_CLIENT: ClientInput = {
   name: '',
   description: '',
   enabled: true,
-  publicClient: true, // a public client by default (no secret)
+  publicClient: true, // default: no secret
   rootUrl: '',
   homeUrl: '',
   redirectUris: [],

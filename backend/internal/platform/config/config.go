@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-// Config holds all runtime configuration, read once from the environment.
 type Config struct {
 	Env             string
 	Port            string
@@ -16,7 +15,6 @@ type Config struct {
 	SessionTTL      time.Duration
 }
 
-// Load reads configuration from the environment, applying development defaults.
 func Load() (Config, error) {
 	c := Config{
 		Env:             getenv("APP_ENV", "development"),

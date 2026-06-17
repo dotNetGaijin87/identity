@@ -14,7 +14,6 @@ export type ButtonProps = {
   isLoading?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
-/** Thin wrapper over <button> that bakes in our variants and a loading state. */
 export function Button({
   variant = 'solid',
   size = 'md',

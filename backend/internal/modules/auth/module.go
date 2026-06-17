@@ -13,7 +13,6 @@ import (
 	"idp/internal/platform/middleware"
 )
 
-// Module is the auth feature's public surface (routes + the Authenticate middleware).
 type Module struct {
 	svc           *Service
 	sessionTTL    time.Duration
@@ -28,9 +27,7 @@ func New(repo Repository, cfg config.Config) *Module {
 	}
 }
 
-// RegisterRoutes mounts the auth endpoints under the given (already /api-scoped) router.
 func (m *Module) RegisterRoutes(r chi.Router) {
-	// Throttle login attempts: 10 per minute per client IP.
 	loginLimit := middleware.RateLimit(10, time.Minute)
 	r.Route("/auth", func(r chi.Router) {
 		r.With(loginLimit).Post("/login", m.handleLogin)
@@ -39,7 +36,6 @@ func (m *Module) RegisterRoutes(r chi.Router) {
 	})
 }
 
-// Bootstrap seeds the default admin in an empty database.
 func (m *Module) Bootstrap(ctx context.Context) error {
 	return m.svc.Bootstrap(ctx)
 }

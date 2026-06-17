@@ -9,7 +9,6 @@ export type SelectFieldProps = {
   options: SelectOption[];
 } & SelectHTMLAttributes<HTMLSelectElement>;
 
-/** Labelled <select> wired for accessibility and react-hook-form (`register`). */
 export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(function SelectField(
   { label, error, options, id, className, ...rest },
   ref,

@@ -7,7 +7,6 @@ import (
 	"github.com/zitadel/oidc/v3/pkg/op"
 )
 
-// opClient adapts our ClientInfo to op.Client.
 type opClient struct {
 	info     ClientInfo
 	loginURL func(id string) string

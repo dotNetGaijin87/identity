@@ -6,7 +6,6 @@ export type InputFieldProps = {
   error?: string;
 } & InputHTMLAttributes<HTMLInputElement>;
 
-/** Labelled text input wired for accessibility and react-hook-form (`register`). */
 export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(
   { label, error, id, className, ...rest },
   ref,

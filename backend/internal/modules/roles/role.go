@@ -1,5 +1,3 @@
-// Package roles is the role-management module (tenant-scoped), in clean-architecture
-// layers: domain → service → repository (port) with a sqlc-backed adapter.
 package roles
 
 import (

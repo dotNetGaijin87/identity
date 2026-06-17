@@ -24,7 +24,6 @@ export type ClientFormProps = {
   isSubmitting: boolean;
 };
 
-/** Map the API payload into the richer form shape (and back on submit). */
 function toFormValues(input: ClientInput): ClientFormValues {
   const lifespan = secondsToLifespan(input.accessTokenLifespan);
   return {

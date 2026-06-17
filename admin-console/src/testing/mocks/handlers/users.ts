@@ -4,7 +4,6 @@ import { bool, errorResponse, readJson, str } from './_helpers';
 
 type UserEntity = ReturnType<typeof db.user.create>;
 
-/** Shape a user entity into the API DTO: relations flattened to `roleIds`. */
 const toUserDto = (user: UserEntity) => ({
   id: user.id,
   tenantId: user.tenantId,
@@ -80,7 +79,6 @@ export const userHandlers = [
     return HttpResponse.json(toUserDto(updated!));
   }),
 
-  // Assign roles to a user (the dedicated role-assignment endpoint).
   http.put('*/api/tenants/:tenantId/users/:id/roles', async ({ params, request }) => {
     await delay(150);
     const id = String(params.id);

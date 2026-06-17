@@ -20,6 +20,5 @@ func (m *Module) RegisterRoutes(r chi.Router) {
 	r.Delete("/tenants/{tenantId}/roles/{id}", m.handleDelete)
 }
 
-// Service exposes the role service so the composition root can wire it as the
-// users module's RoleChecker and use it for demo seeding.
+// Service is wired as the users module's RoleChecker by the composition root.
 func (m *Module) Service() *Service { return m.svc }

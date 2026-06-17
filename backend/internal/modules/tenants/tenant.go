@@ -1,6 +1,5 @@
-// Package tenants is the tenant management module, structured in clean-architecture
-// layers: domain (this file) → service (use cases) → repository (port), with a
-// sqlc-backed adapter at the edge. Inner layers know nothing about HTTP or SQL.
+// Package tenants is structured in layers: domain → service → repository (port),
+// with a sqlc-backed adapter at the edge. Inner layers know nothing about HTTP or SQL.
 package tenants
 
 import (
@@ -10,7 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Tenant is the domain entity.
 type Tenant struct {
 	ID          uuid.UUID
 	Name        string
@@ -19,7 +17,7 @@ type Tenant struct {
 	CreatedAt   time.Time
 }
 
-// CreateInput / UpdateInput are use-case inputs (name is immutable after create).
+// Name is immutable after create, so it is absent from UpdateInput.
 type CreateInput struct {
 	Name        string
 	DisplayName string
@@ -31,7 +29,6 @@ type UpdateInput struct {
 	Enabled     bool
 }
 
-// Domain errors — transport maps these to HTTP status + message.
 var (
 	ErrNotFound     = errors.New("tenant not found")
 	ErrNameRequired = errors.New("tenant name is required")

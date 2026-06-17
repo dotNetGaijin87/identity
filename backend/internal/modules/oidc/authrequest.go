@@ -7,8 +7,7 @@ import (
 	"github.com/zitadel/oidc/v3/pkg/op"
 )
 
-// authRequest is an in-flight authorization request (op.AuthRequest). It becomes
-// "done" once the end-user authenticates on the login page.
+// authRequest becomes "done" once the end-user authenticates on the login page.
 type authRequest struct {
 	id            string
 	clientID      string

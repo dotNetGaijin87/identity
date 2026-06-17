@@ -6,8 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Repository is the persistence port for clients. Create/Update take the secret
-// computed by the service (the repo doesn't generate secrets).
 type Repository interface {
 	ListByTenant(ctx context.Context, tenantID uuid.UUID) ([]Client, error)
 	GetByID(ctx context.Context, id uuid.UUID) (Client, error)

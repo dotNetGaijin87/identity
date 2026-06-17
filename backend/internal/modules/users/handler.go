@@ -189,8 +189,7 @@ func pathUUID(r *http.Request, key, notFoundMsg string) (uuid.UUID, error) {
 	return id, nil
 }
 
-// parseUUIDs converts string ids to UUIDs, silently dropping malformed ones
-// (invalid/unknown role ids are filtered against the tenant by the service).
+// parseUUIDs silently drops malformed ids; the service filters the rest against the tenant.
 func parseUUIDs(ss []string) []uuid.UUID {
 	out := make([]uuid.UUID, 0, len(ss))
 	for _, s := range ss {

@@ -1,6 +1,3 @@
-// Package users is the user-management module (tenant-scoped), incl. role
-// assignment. Clean-architecture layers: domain → service → repository (port),
-// with a sqlc-backed adapter. Role validation goes through the RoleChecker port.
 package users
 
 import (
@@ -47,8 +44,7 @@ var (
 	ErrInvalidLogin     = errors.New("invalid username or password")
 )
 
-// RoleChecker is the cross-module port: it filters role ids to those that exist
-// in the tenant. The roles service satisfies it; the composition root injects it.
+// RoleChecker is satisfied by the roles service and injected by the composition root.
 type RoleChecker interface {
 	FilterTenantRoleIDs(ctx context.Context, tenantID uuid.UUID, ids []uuid.UUID) ([]uuid.UUID, error)
 }

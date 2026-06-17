@@ -40,7 +40,6 @@ var loginTmpl = template.Must(template.New("login").Parse(`<!doctype html>
   </form>
 </body></html>`))
 
-// loginHandler serves the hosted end-user login page for one tenant's issuer.
 type loginHandler struct {
 	storage     *Storage
 	callbackURL func(ctx context.Context, requestID string) string
@@ -80,9 +79,8 @@ func (h *loginHandler) submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.storage.markAuthorized(id, user.ID.String())
-	// Auto-consent: redirect back to the provider's callback to issue the code.
-	// op returns a root-relative callback path; the provider is mounted under the
-	// issuer's path (/oidc/{tenant}), so prepend the issuer to keep it routable.
+	// op returns a root-relative callback path, but the provider is mounted under
+	// the issuer's path (/oidc/{tenant}), so prepend the issuer to keep it routable.
 	callback := h.callbackURL(r.Context(), id)
 	if !strings.HasPrefix(callback, "http") {
 		callback = h.storage.issuer + callback

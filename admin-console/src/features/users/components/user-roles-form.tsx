@@ -11,10 +11,6 @@ export type UserRolesFormProps = {
   assignedRoleIds: string[];
 };
 
-/**
- * Assign tenant roles to a user. Reads the tenant's roles via the roles feature's
- * public API and persists the selection through the users data layer.
- */
 export function UserRolesForm({ tenantId, userId, assignedRoleIds }: UserRolesFormProps) {
   const { data: roles, isLoading, isError } = useRoles(tenantId);
   const { showNotification } = useNotifications();

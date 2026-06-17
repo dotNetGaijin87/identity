@@ -22,10 +22,8 @@ const nextId = () => {
   return `n_${counter}`;
 };
 
-/**
- * A store usable inside React (via `useNotifications`) and outside it (via `getState()`),
- * so the API client's error interceptor can raise notifications without a hook.
- */
+// Usable outside React (via `getState()`) so the API client's error interceptor
+// can raise notifications without a hook.
 export const notificationsStore = createStore<NotificationsState>((set, get) => ({
   notifications: [],
   showNotification: (n) => {
@@ -41,5 +39,4 @@ export const notificationsStore = createStore<NotificationsState>((set, get) => 
   clear: () => set({ notifications: [] }),
 }));
 
-/** Hook for components. */
 export const useNotifications = () => useStore(notificationsStore);

@@ -11,7 +11,7 @@ import (
 	"idp/internal/platform/httpx"
 )
 
-// tenantResponse is the API DTO. createdAt is epoch millis to match the frontend.
+// createdAt is epoch millis to match the frontend.
 type tenantResponse struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
@@ -126,7 +126,6 @@ func tenantID(r *http.Request) (uuid.UUID, error) {
 	return id, nil
 }
 
-// toHTTP maps domain errors to the {message} HTTP responses the frontend expects.
 func toHTTP(err error, name string) error {
 	switch {
 	case errors.Is(err, ErrNotFound):

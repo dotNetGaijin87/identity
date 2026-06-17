@@ -9,8 +9,6 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-// Migrate applies all pending migrations from the embedded FS. It waits briefly
-// for the database to accept connections (helpful on a cold `docker compose up`).
 func Migrate(databaseURL string, fsys fs.FS) error {
 	db, err := sql.Open("pgx", databaseURL)
 	if err != nil {
@@ -18,6 +16,7 @@ func Migrate(databaseURL string, fsys fs.FS) error {
 	}
 	defer db.Close()
 
+	// Wait for the database to accept connections (cold `docker compose up`).
 	for i := 0; i < 30; i++ {
 		if err = db.Ping(); err == nil {
 			break

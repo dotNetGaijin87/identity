@@ -8,9 +8,7 @@ import (
 	"github.com/zitadel/oidc/v3/pkg/op"
 )
 
-// signingKey is the provider's RSA signing key (op.SigningKey). Generated in
-// memory at startup for now; persisting it (stable JWKS across restarts) is a
-// later refinement.
+// Generated in memory at startup; persisting it (stable JWKS across restarts) is a later refinement.
 type signingKey struct {
 	id  string
 	key *rsa.PrivateKey
@@ -20,7 +18,6 @@ func (s *signingKey) SignatureAlgorithm() jose.SignatureAlgorithm { return jose.
 func (s *signingKey) Key() any                                    { return s.key }
 func (s *signingKey) ID() string                                  { return s.id }
 
-// publicKey is the public half exposed via JWKS (op.Key).
 type publicKey struct {
 	signing *signingKey
 }

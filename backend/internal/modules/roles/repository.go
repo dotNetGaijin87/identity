@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Repository is the persistence port for roles.
 type Repository interface {
 	ListByTenant(ctx context.Context, tenantID uuid.UUID) ([]Role, error)
 	GetByID(ctx context.Context, id uuid.UUID) (Role, error)

@@ -1,9 +1,6 @@
 import { z } from 'zod';
 
-/**
- * Read environment through one typed, validated module so access is centralized.
- * Vite exposes vars prefixed `VITE_` on `import.meta.env`.
- */
+// Vite exposes only vars prefixed `VITE_` on `import.meta.env`.
 const schema = z.object({
   API_URL: z.string().min(1),
   ENABLE_API_MOCKING: z.boolean(),

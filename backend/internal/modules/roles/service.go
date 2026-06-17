@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Service holds the role use cases. Depends on the Repository port only.
 type Service struct {
 	repo Repository
 }
@@ -53,8 +52,7 @@ func (s *Service) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.repo.Delete(ctx, id)
 }
 
-// FilterTenantRoleIDs satisfies the users module's RoleChecker port: it returns
-// the subset of ids that are real roles in the given tenant.
+// FilterTenantRoleIDs satisfies the users module's RoleChecker port.
 func (s *Service) FilterTenantRoleIDs(ctx context.Context, tenantID uuid.UUID, ids []uuid.UUID) ([]uuid.UUID, error) {
 	if len(ids) == 0 {
 		return nil, nil

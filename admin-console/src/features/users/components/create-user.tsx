@@ -16,7 +16,7 @@ export function CreateUser() {
         title: `User "${user.username}" created`,
         duration: 4000,
       });
-      // Continue to the user's page so roles can be assigned right away.
+      // Land on the user's page so roles can be assigned right away.
       navigate(`/tenants/${tenantId}/users/${user.id}`);
     },
   });

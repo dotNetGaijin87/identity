@@ -1,5 +1,4 @@
 :root {
-  /* Dark surfaces */
   --color-bg: #0d0e13;
   --color-surface: #15171f;
   --color-surface-2: #1c1f2a;
@@ -9,14 +8,12 @@
   --color-text: #e7e9f0;
   --color-muted: #8b93a5;
 
-  /* Purple accent — used for highlights, focus, active, and checked states */
   --color-primary: #8b5cf6;
   --color-primary-hover: #7c3aed;
   --color-accent: #b69dff;
   --color-primary-soft: rgba(139, 92, 246, 0.16);
   --color-primary-border: rgba(139, 92, 246, 0.55);
 
-  /* Semantic status (kept distinct from the purple "selection" accent) */
   --color-danger: #f47174;
   --color-danger-hover: #ef4444;
   --color-success: #34d399;
@@ -52,7 +49,6 @@ body,
 
 body {
   background: var(--color-bg);
-  /* Subtle, low-key purple glow in the corners — atmosphere, not sparkle */
   background-image:
     radial-gradient(900px 500px at 100% -5%, rgba(139, 92, 246, 0.1), transparent 60%),
     radial-gradient(700px 500px at -5% 110%, rgba(139, 92, 246, 0.07), transparent 55%);
@@ -87,7 +83,6 @@ h2 {
   border-radius: 4px;
 }
 
-/* ── Buttons ─────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -149,7 +144,6 @@ h2 {
   font-size: 0.8rem;
 }
 
-/* ── Form fields ─────────────────────────────────────── */
 .field {
   display: flex;
   flex-direction: column;
@@ -203,7 +197,6 @@ input[type='checkbox'] {
   cursor: pointer;
 }
 
-/* ── Cards / surfaces ───────────────────────────────── */
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -212,7 +205,6 @@ input[type='checkbox'] {
   padding: 1.35rem;
 }
 
-/* ── Table ───────────────────────────────────────────── */
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -244,7 +236,6 @@ input[type='checkbox'] {
   background: var(--color-primary-soft);
 }
 
-/* ── Badges ─────────────────────────────────────────── */
 .badge {
   display: inline-block;
   padding: 0.12rem 0.55rem;
@@ -269,7 +260,6 @@ input[type='checkbox'] {
   border-color: var(--color-primary-border);
 }
 
-/* ── Layout shells ──────────────────────────────────── */
 .muted {
   color: var(--color-muted);
 }
@@ -305,7 +295,6 @@ input[type='checkbox'] {
   }
 }
 
-/* ── Auth ───────────────────────────────────────────── */
 .auth {
   min-height: 100%;
   display: grid;
@@ -327,7 +316,6 @@ input[type='checkbox'] {
   border-radius: 4px;
 }
 
-/* ── Admin layout (top bar + tabs) ──────────────────── */
 .app-shell {
   display: flex;
   flex-direction: column;
@@ -424,7 +412,6 @@ input[type='checkbox'] {
   box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
-/* ── Notifications (bottom-right) ───────────────────── */
 .notifications {
   position: fixed;
   bottom: 1rem;
@@ -485,7 +472,6 @@ input[type='checkbox'] {
   color: var(--color-text);
 }
 
-/* ── Checkbox list (role assignment) ───────────────── */
 .checkbox-list {
   display: flex;
   flex-direction: column;
@@ -555,7 +541,6 @@ input[type='checkbox'] {
   gap: 1.25rem;
 }
 
-/* ── Scrollbars ─────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;

@@ -4,7 +4,6 @@ import { useTenants } from '@/features/tenants';
 import { Button } from '@/components/button';
 import { cn } from '@/utils/cn';
 
-/** Authenticated chrome: top bar (brand, tenant switcher, account) + horizontal tab nav. */
 export function AdminLayout() {
   const navigate = useNavigate();
   const match = useMatch('/tenants/:tenantId/*');

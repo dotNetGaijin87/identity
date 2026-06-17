@@ -16,13 +16,12 @@ import (
 	"github.com/zitadel/oidc/v3/pkg/op"
 )
 
-// errNotImplemented marks the token / userinfo methods that land in Milestone 5c.
 var errNotImplemented = errors.New("oidc: token flow not implemented yet (5c)")
 var errAuthRequestNotFound = errors.New("oidc: auth request not found")
 
-// Storage implements op.Storage for a single tenant (issuer). Signing keys are
-// shared in-memory; clients/users come from Postgres via ports; auth requests and
-// codes are kept in memory for now (persistence is a later refinement).
+// Storage implements op.Storage for a single tenant (issuer). Clients/users come
+// from Postgres via ports; auth requests, codes, and tokens are kept in memory
+// for now (persistence is a later refinement).
 type Storage struct {
 	signing *signingKey
 	tenant  TenantRef
@@ -31,7 +30,7 @@ type Storage struct {
 	users   UserStore
 
 	mu            sync.Mutex
-	authRequests  map[string]*authRequest // by id
+	authRequests  map[string]*authRequest
 	codes         map[string]string       // auth code -> auth request id
 	tokens        map[string]*tokenRecord // access token id -> record
 	refreshTokens map[string]*tokenRecord // refresh token -> record
@@ -52,8 +51,6 @@ func newStorage(sk *signingKey, tenant TenantRef, issuer string, clients ClientS
 }
 
 var _ op.Storage = (*Storage)(nil)
-
-// ── helpers used by the login handler ──────────────────────────────────────────
 
 func (s *Storage) getAuthRequest(id string) *authRequest {
 	s.mu.Lock()
@@ -79,8 +76,6 @@ func randomID() string {
 	return base64.RawURLEncoding.EncodeToString(b)
 }
 
-// ── Keys & discovery ───────────────────────────────────────────────────────────
-
 func (s *Storage) SigningKey(_ context.Context) (op.SigningKey, error) { return s.signing, nil }
 func (s *Storage) SignatureAlgorithms(_ context.Context) ([]jose.SignatureAlgorithm, error) {
 	return []jose.SignatureAlgorithm{jose.RS256}, nil
@@ -89,8 +84,6 @@ func (s *Storage) KeySet(_ context.Context) ([]op.Key, error) {
 	return []op.Key{&publicKey{signing: s.signing}}, nil
 }
 func (s *Storage) Health(_ context.Context) error { return nil }
-
-// ── Authorization request flow (5b) ────────────────────────────────────────────
 
 func (s *Storage) CreateAuthRequest(_ context.Context, req *oidc.AuthRequest, _ string) (op.AuthRequest, error) {
 	ar := &authRequest{
@@ -156,8 +149,6 @@ func (s *Storage) DeleteAuthRequest(_ context.Context, id string) error {
 	return nil
 }
 
-// ── Clients (5b) ───────────────────────────────────────────────────────────────
-
 func (s *Storage) GetClientByClientID(ctx context.Context, clientID string) (op.Client, error) {
 	info, found, err := s.clients.ClientByClientID(ctx, s.tenant.ID, clientID)
 	if err != nil {
@@ -188,8 +179,6 @@ func (s *Storage) AuthorizeClientIDSecret(ctx context.Context, clientID, secret 
 	}
 	return nil
 }
-
-// ── Token issuance & refresh (5c) ──────────────────────────────────────────────
 
 const accessTokenTTL = time.Hour
 
@@ -251,8 +240,6 @@ func (s *Storage) RevokeToken(_ context.Context, tokenOrTokenID, _, _ string) *o
 	return nil
 }
 
-// ── Userinfo / claims (5c) ──────────────────────────────────────────────────────
-
 func (s *Storage) SetUserinfoFromToken(ctx context.Context, userinfo *oidc.UserInfo, tokenID, subject, _ string) error {
 	s.mu.Lock()
 	rec, ok := s.tokens[tokenID]
@@ -264,9 +251,8 @@ func (s *Storage) SetUserinfoFromToken(ctx context.Context, userinfo *oidc.UserI
 	return s.fillUserinfo(ctx, userinfo, subject, scopes)
 }
 
-// SetUserinfoFromScopes populates the userinfo merged into the id_token. op calls
-// claims.SetUserInfo with this, so it must at least set the subject (plus any
-// non-restricted scope claims) — an empty impl would blank out the id_token's sub.
+// op merges this into the id_token via claims.SetUserInfo, overwriting the sub;
+// an empty impl would blank out the id_token's subject, so it must set it.
 func (s *Storage) SetUserinfoFromScopes(ctx context.Context, userinfo *oidc.UserInfo, subject, _ string, scopes []string) error {
 	return s.fillUserinfo(ctx, userinfo, subject, scopes)
 }

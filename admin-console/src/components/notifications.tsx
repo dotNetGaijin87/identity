@@ -1,7 +1,6 @@
 import { useNotifications } from '@/stores/notifications';
 import { cn } from '@/utils/cn';
 
-/** Renders the global notification stack near the app root. */
 export function Notifications() {
   const { notifications, dismissNotification } = useNotifications();
   if (notifications.length === 0) return null;
