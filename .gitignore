@@ -1,0 +1,18 @@
+# Dependencies & build output
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+
+# Go binaries
+*.exe
+bin/
+
+# Environment (committed as *.env.example instead)
+.env
+*.local
+
+# OS / editor
+.DS_Store
+Thumbs.db

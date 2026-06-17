@@ -1,0 +1,196 @@
+openapi: 3.1.0
+info:
+  title: IdP Management API
+  version: 0.1.0
+  description: >
+    Admin/management API for the IdP console (tenants, users, roles, clients, auth).
+    The console authenticates via an httpOnly session cookie (BFF). The separate OIDC
+    provider (tokens issued to client apps) lives under /oidc/{tenant} and is described
+    by each tenant's discovery document, not this file.
+servers:
+  - url: /api
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: idp_session
+  schemas:
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+    Admin:
+      type: object
+      required: [id, username, email]
+      properties:
+        id: { type: string }
+        username: { type: string }
+        email: { type: string, format: email }
+    Tenant:
+      type: object
+      required: [id, name, displayName, enabled, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        displayName: { type: string }
+        enabled: { type: boolean }
+        createdAt: { type: integer, format: int64, description: epoch millis }
+    Role:
+      type: object
+      required: [id, tenantId, name, description, createdAt]
+      properties:
+        id: { type: string }
+        tenantId: { type: string }
+        name: { type: string }
+        description: { type: string }
+        createdAt: { type: integer, format: int64 }
+    User:
+      type: object
+      required: [id, tenantId, username, email, firstName, lastName, enabled, createdAt, roleIds]
+      properties:
+        id: { type: string }
+        tenantId: { type: string }
+        username: { type: string }
+        email: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        enabled: { type: boolean }
+        createdAt: { type: integer, format: int64 }
+        roleIds: { type: array, items: { type: string } }
+    Client:
+      type: object
+      required: [id, tenantId, clientId, name, description, enabled, publicClient, secret,
+                 rootUrl, homeUrl, redirectUris, postLogoutRedirectUris, defaultScopes,
+                 directAccessGrants, serviceAccounts, implicitFlow, deviceFlow, pkce,
+                 consentRequired, accessTokenLifespan, idTokenSignatureAlg, fullScopeAllowed, createdAt]
+      properties:
+        id: { type: string }
+        tenantId: { type: string }
+        clientId: { type: string }
+        name: { type: string }
+        description: { type: string }
+        enabled: { type: boolean }
+        publicClient: { type: boolean }
+        secret: { type: string }
+        rootUrl: { type: string }
+        homeUrl: { type: string }
+        redirectUris: { type: array, items: { type: string } }
+        postLogoutRedirectUris: { type: array, items: { type: string } }
+        defaultScopes: { type: array, items: { type: string } }
+        directAccessGrants: { type: boolean }
+        serviceAccounts: { type: boolean }
+        implicitFlow: { type: boolean }
+        deviceFlow: { type: boolean }
+        pkce: { type: string, enum: [none, S256] }
+        consentRequired: { type: boolean }
+        accessTokenLifespan: { type: integer }
+        idTokenSignatureAlg: { type: string, enum: [RS256, ES256, PS256] }
+        fullScopeAllowed: { type: boolean }
+        createdAt: { type: integer, format: int64 }
+  responses:
+    NotFound: { description: Not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    BadRequest: { description: Invalid input, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Conflict: { description: Conflict, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Unauthorized: { description: Not authenticated, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+security:
+  - sessionCookie: []
+
+paths:
+  /auth/login:
+    post:
+      security: []
+      summary: Log in (sets the session cookie)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties: { username: { type: string }, password: { type: string } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Admin' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { description: Too many requests }
+  /auth/logout:
+    post: { summary: Log out, responses: { '204': { description: No Content } } }
+  /auth/me:
+    get:
+      summary: Current admin
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Admin' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /tenants:
+    get:
+      summary: List tenants
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Tenant' } } } } } }
+    post:
+      summary: Create tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, enabled]
+              properties: { name: { type: string }, displayName: { type: string }, enabled: { type: boolean } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Tenant' } } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /tenants/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      summary: Get tenant
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Tenant' } } } }, '404': { $ref: '#/components/responses/NotFound' } }
+    put:
+      summary: Update tenant
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { displayName: { type: string }, enabled: { type: boolean } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Tenant' } } } }, '404': { $ref: '#/components/responses/NotFound' } }
+    delete:
+      summary: Delete tenant
+      responses: { '204': { description: No Content }, '404': { $ref: '#/components/responses/NotFound' } }
+
+  /tenants/{tenantId}/users:
+    parameters: [{ name: tenantId, in: path, required: true, schema: { type: string } }]
+    get: { summary: List users, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/User' } } } } } } }
+    post:
+      summary: Create user
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [username, enabled], properties: { username: { type: string }, email: { type: string }, firstName: { type: string }, lastName: { type: string }, enabled: { type: boolean }, roleIds: { type: array, items: { type: string } } } } } } }
+      responses: { '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }, '400': { $ref: '#/components/responses/BadRequest' }, '409': { $ref: '#/components/responses/Conflict' } }
+  /tenants/{tenantId}/users/{id}/roles:
+    parameters:
+      - { name: tenantId, in: path, required: true, schema: { type: string } }
+      - { name: id, in: path, required: true, schema: { type: string } }
+    put:
+      summary: Assign roles to a user
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [roleIds], properties: { roleIds: { type: array, items: { type: string } } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }, '404': { $ref: '#/components/responses/NotFound' } }
+
+  /tenants/{tenantId}/roles:
+    parameters: [{ name: tenantId, in: path, required: true, schema: { type: string } }]
+    get: { summary: List roles, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Role' } } } } } } }
+    post:
+      summary: Create role
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [name], properties: { name: { type: string }, description: { type: string } } } } } }
+      responses: { '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Role' } } } }, '400': { $ref: '#/components/responses/BadRequest' }, '409': { $ref: '#/components/responses/Conflict' } }
+
+  /tenants/{tenantId}/clients:
+    parameters: [{ name: tenantId, in: path, required: true, schema: { type: string } }]
+    get: { summary: List clients, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Client' } } } } } } }
+    post:
+      summary: Create client
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Client' } } } }
+      responses: { '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Client' } } } }, '400': { $ref: '#/components/responses/BadRequest' }, '409': { $ref: '#/components/responses/Conflict' } }
+  /tenants/{tenantId}/clients/{id}/regenerate-secret:
+    parameters:
+      - { name: tenantId, in: path, required: true, schema: { type: string } }
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      summary: Regenerate a confidential client's secret
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Client' } } } }, '400': { $ref: '#/components/responses/BadRequest' }, '404': { $ref: '#/components/responses/NotFound' } }
