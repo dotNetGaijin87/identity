@@ -1,0 +1,10 @@
+{
+  "name": "demo-client",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Zero-dependency OIDC relying-party demo for testing the end-user login flow.",
+  "scripts": {
+    "start": "node server.mjs"
+  }
+}
