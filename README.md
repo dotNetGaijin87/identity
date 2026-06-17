@@ -24,6 +24,25 @@ idp/
 Two distinct auth contexts: the **console** logs admins in via a session cookie (BFF); the **OIDC
 provider** issues tokens to *client apps* for *their* end-users.
 
+## Screenshots
+
+**Admin console** (dark theme) — tenants, and a user's role assignment:
+
+| Tenants | Role assignment |
+| :---: | :---: |
+| ![Tenants](docs/screenshots/02-tenants.png) | ![Role assignment](docs/screenshots/04-user-roles.png) |
+
+OIDC client settings (redirect URIs, grant types, PKCE, token lifetimes, secret):
+
+![Client settings](docs/screenshots/05-client-settings.png)
+
+**End-user OIDC login** via the demo client — the IdP's hosted login, then the app
+receiving the user's claims and tokens:
+
+| IdP hosted login | Signed in (claims + tokens) |
+| :---: | :---: |
+| ![IdP login](docs/screenshots/07-idp-login.png) | ![Signed in](docs/screenshots/08-signed-in.png) |
+
 ## Run everything with Docker (easiest)
 
 Just **Docker Desktop** required. From this folder:
