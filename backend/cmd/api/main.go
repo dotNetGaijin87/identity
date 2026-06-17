@@ -12,6 +12,7 @@ import (
 	"idp/internal/app"
 	"idp/internal/platform/config"
 	"idp/internal/platform/database"
+	"idp/migrations"
 )
 
 func main() {
@@ -25,6 +26,13 @@ func main() {
 	}
 
 	ctx := context.Background()
+
+	// Apply pending migrations (embedded) before serving.
+	if err := database.Migrate(cfg.DatabaseURL, migrations.FS); err != nil {
+		logger.Error("migrate", "err", err)
+		os.Exit(1)
+	}
+
 	pool, err := database.Connect(ctx, cfg.DatabaseURL)
 	if err != nil {
 		logger.Error("connect database", "err", err)

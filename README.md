@@ -4,8 +4,10 @@ A multi-tenant identity provider with a web admin console. Monorepo:
 
 ```
 idp/
-├── backend/         Go API (modular monolith) + OIDC provider, on Postgres
-└── admin-console/   React + TypeScript admin SPA
+├── backend/             Go API (modular monolith) + OIDC provider, on Postgres
+├── admin-console/       React + TypeScript admin SPA
+├── client/              demo OIDC relying-party app (test the end-user login)
+└── docker-compose.yml   run the whole stack with one command
 ```
 
 ## What it is
@@ -22,18 +24,33 @@ idp/
 Two distinct auth contexts: the **console** logs admins in via a session cookie (BFF); the **OIDC
 provider** issues tokens to *client apps* for *their* end-users.
 
-## Run it locally
+## Run everything with Docker (easiest)
 
-Prereqs: **Docker Desktop**, **Go 1.26+**, **Node 20+**.
+Just **Docker Desktop** required. From this folder:
 
-**Terminal 1 — backend (from `backend/`):**
 ```bash
-go install github.com/pressly/goose/v3/cmd/goose@latest   # one-time
-docker compose up -d db                                    # Postgres
-goose -dir migrations postgres "postgres://idp:idp@localhost:5432/idp?sslmode=disable" up
-go run ./cmd/api                                           # http://localhost:8080
+docker compose up --build
 ```
-(Windows PowerShell: add Go's bin to PATH first — `$env:Path += ";$(go env GOPATH)\bin"`.)
+
+Then open:
+- **http://localhost:5173** — admin console (sign in **`admin` / `admin`**)
+- **http://localhost:3000** — demo app; click *Log in with the IdP* and sign in as the end-user
+  **`jdoe` / `password`**
+- **http://localhost:8080** — the IdP API / OIDC issuer (`/oidc/{tenant}`)
+
+The backend applies migrations and seeds demo data (`system`/`acme` tenants, users, roles,
+clients) on startup. Port already taken? Override e.g. `BACKEND_PORT=8088 WEB_PORT=5174 docker
+compose up`. Stop with `Ctrl-C`; `docker compose down -v` also wipes the database.
+
+## Or run it locally (without Docker)
+
+Prereqs: **Docker Desktop** (just for Postgres), **Go 1.26+**, **Node 20+**.
+
+**Terminal 1 — backend (from `backend/`):** the binary self-migrates, so no goose step.
+```bash
+docker compose up -d db        # Postgres only
+go run ./cmd/api               # http://localhost:8080  (migrates + seeds, then serves)
+```
 
 **Terminal 2 — console (from `admin-console/`):**
 ```bash
@@ -41,8 +58,13 @@ npm install
 npm run dev          # http://localhost:5173
 ```
 
-Open **http://localhost:5173** → sign in **`admin` / `admin`**. Seeds `system` + `acme` tenants,
-demo users (`jdoe`/`msmith`, OIDC password `password`), roles, and clients.
+**Terminal 3 — demo client (from `client/`):**
+```bash
+node server.mjs      # http://localhost:3000
+```
+
+Sign in to the console with **`admin` / `admin`**; log an end-user into the demo app with
+**`jdoe` / `password`**.
 
 ## Tests
 

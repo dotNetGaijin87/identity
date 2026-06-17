@@ -11,9 +11,15 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 
 const PORT = Number(process.env.PORT || 3000);
-const API = process.env.API_URL || 'http://localhost:8080'; // backend
+// API: where this server reaches the backend (server-side calls + admin registration
+// + token/userinfo). PUBLIC_BASE: the browser-facing origin used for redirects.
+// They differ under Docker (API=http://backend:8080, PUBLIC_BASE=http://localhost:8080)
+// and are the same for a plain local run.
+const API = process.env.API_URL || 'http://localhost:8080';
+const PUBLIC_BASE = process.env.PUBLIC_BASE || API;
 const TENANT = process.env.TENANT || 'acme';
-const ISSUER = `${API}/oidc/${TENANT}`;
+const ISSUER = `${API}/oidc/${TENANT}`; // server-side (token, userinfo)
+const ISSUER_PUBLIC = `${PUBLIC_BASE}/oidc/${TENANT}`; // browser (authorize)
 const CLIENT_ID = 'demo-app';
 const REDIRECT_URI = `http://localhost:${PORT}/callback`;
 const SCOPE = 'openid profile email offline_access';
@@ -80,7 +86,7 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/') {
     res.end(page(`<h1>Demo App</h1>
       <p class="muted">A relying party for the IdP — tenant <code>${TENANT}</code>, issuer
-      <code>${ISSUER}</code>.</p>
+      <code>${ISSUER_PUBLIC}</code>.</p>
       <a class="btn" href="/login">Log in with the IdP</a>
       <p class="muted" style="margin-top:1rem">Demo end-user: <code>jdoe</code> / <code>password</code></p>`));
     return;
@@ -90,7 +96,7 @@ const server = http.createServer(async (req, res) => {
     const { verifier, challenge } = makePkce();
     const state = b64url(crypto.randomBytes(16));
     sessions.set(state, { verifier });
-    const authz = new URL(`${ISSUER}/authorize`);
+    const authz = new URL(`${ISSUER_PUBLIC}/authorize`);
     authz.search = new URLSearchParams({
       response_type: 'code', client_id: CLIENT_ID, redirect_uri: REDIRECT_URI,
       scope: SCOPE, state, code_challenge: challenge, code_challenge_method: 'S256',
@@ -146,7 +152,20 @@ expires_in:    ${tok.expires_in}s</pre>
   res.end(page('<h1>404</h1>'));
 });
 
-ensureClient()
+async function ensureClientWithRetry(attempts = 30) {
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      await ensureClient();
+      return;
+    } catch (err) {
+      if (i === attempts) throw err;
+      console.log(`waiting for backend at ${API} (${i}/${attempts})…`);
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+  }
+}
+
+ensureClientWithRetry()
   .then(() => server.listen(PORT, () => {
     console.log(`\nDemo App running → http://localhost:${PORT}`);
     console.log(`Sign in as the end-user:  jdoe / password\n`);
