@@ -94,6 +94,8 @@ func (m *Module) engineFor(ref TenantRef) (http.Handler, error) {
 	router := chi.NewRouter()
 	router.Get("/login", login.show) // our hosted login page
 	router.Post("/login", login.submit)
+	// Enforce PKCE in front of the provider's /authorize, then delegate to it.
+	router.Get("/authorize", m.authorizeGuard(storage, provider))
 	router.Handle("/*", provider) // everything else → the OIDC provider
 
 	m.engines[ref.Name] = router

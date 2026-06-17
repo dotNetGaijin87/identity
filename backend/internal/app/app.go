@@ -136,6 +136,7 @@ func (c clientStore) ClientByClientID(ctx context.Context, tenantID uuid.UUID, c
 		DirectAccessGrants:  cl.DirectAccessGrants,
 		ServiceAccounts:     cl.ServiceAccounts,
 		DeviceFlow:          cl.DeviceFlow,
+		PKCE:                cl.PKCE,
 		AccessTokenLifespan: cl.AccessTokenLifespan,
 	}, true, nil
 }

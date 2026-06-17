@@ -29,6 +29,7 @@ type ClientInfo struct {
 	DirectAccessGrants  bool
 	ServiceAccounts     bool
 	DeviceFlow          bool
+	PKCE                string // "none" | "S256"
 	AccessTokenLifespan int
 }
 
