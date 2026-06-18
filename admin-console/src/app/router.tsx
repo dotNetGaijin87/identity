@@ -4,6 +4,7 @@ import { TenantsList, CreateTenant, EditTenant } from '@/features/tenants';
 import { UsersList, CreateUser, EditUser } from '@/features/users';
 import { RolesList, CreateRole, EditRole } from '@/features/roles';
 import { ClientsList, CreateClient, EditClient } from '@/features/clients';
+import { SessionsList } from '@/features/sessions';
 import { AdminLayout } from './layouts/admin-layout';
 import { LoginPage } from './pages/login-page';
 import { NotFoundPage } from './pages/not-found-page';
@@ -35,6 +36,8 @@ export const router = createBrowserRouter([
       { path: 'tenants/:tenantId/clients', element: <ClientsList /> },
       { path: 'tenants/:tenantId/clients/new', element: <CreateClient /> },
       { path: 'tenants/:tenantId/clients/:clientId', element: <EditClient /> },
+
+      { path: 'tenants/:tenantId/sessions', element: <SessionsList /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

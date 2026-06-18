@@ -14,12 +14,15 @@ idp/
 
 - **Admin console** (`admin-console/`) — a React app to manage **tenants**, and within each tenant
   its **users**, **clients**, and **roles** (list / create / edit), including assigning roles to a
-  user. Dark theme; signs in with an httpOnly session cookie.
+  user. It also lists end-user **SSO sessions** — which user is signed into which clients — with
+  one-click revoke. Dark theme; signs in with an httpOnly session cookie.
 - **Backend** (`backend/`) — a Go modular monolith (clean-architecture layers: domain → service →
   repository port → sqlc adapter; cross-module deps wired as interfaces at one composition root):
   - **Management API** for the console (auth, tenants, users, roles, clients) on Postgres.
   - **OIDC provider** (built on `zitadel/oidc`) with a **per-tenant issuer** (`/oidc/{tenant}`):
-    discovery + JWKS, `/authorize` → hosted login (PKCE), `/token` (code + refresh), `/userinfo`.
+    discovery + JWKS, `/authorize` → hosted login (PKCE), `/token` (code + refresh +
+    client_credentials), `/userinfo`. Hosted login sets an **SSO session** cookie, so a second
+    client signs in without re-prompting.
 
 Two distinct auth contexts: the **console** logs admins in via a session cookie (BFF); the **OIDC
 provider** issues tokens to _client apps_ for _their_ end-users.
@@ -35,6 +38,11 @@ provider** issues tokens to _client apps_ for _their_ end-users.
 OIDC client settings (redirect URIs, grant types, PKCE, token lifetimes, secret):
 
 ![Client settings](docs/screenshots/05-client-settings.png)
+
+End-user **SSO sessions** — which user is signed into which clients (one login spans both apps),
+with one-click revoke:
+
+![Sessions](docs/screenshots/10-sessions.png)
 
 **Demo relying party** — pick a grant to run, then inspect every message exchanged with the IdP:
 a sequence diagram plus a request/response timeline. Two grants are wired — **authorization code +

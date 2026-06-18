@@ -23,11 +23,12 @@ var errAuthRequestNotFound = errors.New("oidc: auth request not found")
 // from Postgres via ports; auth requests, codes, and tokens are kept in memory
 // for now (persistence is a later refinement).
 type Storage struct {
-	signing *signingKey
-	tenant  TenantRef
-	issuer  string
-	clients ClientStore
-	users   UserStore
+	signing  *signingKey
+	tenant   TenantRef
+	issuer   string
+	clients  ClientStore
+	users    UserStore
+	sessions SessionStore
 
 	mu            sync.Mutex
 	authRequests  map[string]*authRequest
@@ -36,13 +37,14 @@ type Storage struct {
 	refreshTokens map[string]*tokenRecord // refresh token -> record
 }
 
-func newStorage(sk *signingKey, tenant TenantRef, issuer string, clients ClientStore, users UserStore) *Storage {
+func newStorage(sk *signingKey, tenant TenantRef, issuer string, clients ClientStore, users UserStore, sessions SessionStore) *Storage {
 	return &Storage{
 		signing:       sk,
 		tenant:        tenant,
 		issuer:        issuer,
 		clients:       clients,
 		users:         users,
+		sessions:      sessions,
 		authRequests:  make(map[string]*authRequest),
 		codes:         make(map[string]string),
 		tokens:        make(map[string]*tokenRecord),

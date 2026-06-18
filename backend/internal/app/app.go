@@ -16,6 +16,7 @@ import (
 	"idp/internal/modules/clients"
 	"idp/internal/modules/oidc"
 	"idp/internal/modules/roles"
+	"idp/internal/modules/sessions"
 	"idp/internal/modules/tenants"
 	"idp/internal/modules/users"
 	"idp/internal/platform/config"
@@ -25,13 +26,14 @@ import (
 )
 
 type App struct {
-	Handler http.Handler
-	auth    *auth.Module
-	tenants *tenants.Module
-	roles   *roles.Module
-	users   *users.Module
-	clients *clients.Module
-	oidc    *oidc.Module
+	Handler  http.Handler
+	auth     *auth.Module
+	tenants  *tenants.Module
+	roles    *roles.Module
+	users    *users.Module
+	clients  *clients.Module
+	sessions *sessions.Module
+	oidc     *oidc.Module
 }
 
 func New(cfg config.Config, pool *pgxpool.Pool) (*App, error) {
@@ -42,12 +44,15 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*App, error) {
 	rolesMod := roles.New(roles.NewPostgresRepository(q))
 	usersMod := users.New(users.NewPostgresRepository(pool), rolesMod.Service())
 	clientsMod := clients.New(clients.NewPostgresRepository(q))
+	sessionsMod := sessions.New(sessions.NewPostgresRepository(q), cfg.SessionTTL)
 
 	oidcMod, err := oidc.New(
 		cfg.OIDCBaseURL,
 		tenantResolver{svc: tenantsMod.Service()},
 		clientStore{svc: clientsMod.Service()},
 		userStore{svc: usersMod.Service()},
+		sessionsMod.Service(), // *sessions.Service satisfies oidc.SessionStore
+		cfg.Env == "production",
 	)
 	if err != nil {
 		return nil, err
@@ -73,19 +78,21 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*App, error) {
 			rolesMod.RegisterRoutes(protected)
 			usersMod.RegisterRoutes(protected)
 			clientsMod.RegisterRoutes(protected)
+			sessionsMod.RegisterRoutes(protected)
 		})
 	})
 
 	r.Handle("/oidc/{tenant}/*", oidcMod.Handler())
 
 	return &App{
-		Handler: r,
-		auth:    authMod,
-		tenants: tenantsMod,
-		roles:   rolesMod,
-		users:   usersMod,
-		clients: clientsMod,
-		oidc:    oidcMod,
+		Handler:  r,
+		auth:     authMod,
+		tenants:  tenantsMod,
+		roles:    rolesMod,
+		users:    usersMod,
+		clients:  clientsMod,
+		sessions: sessionsMod,
+		oidc:     oidcMod,
 	}, nil
 }
 

@@ -11,7 +11,11 @@ const TENANT = process.env.TENANT || "acme";
 const ISSUER = `${API}/oidc/${TENANT}`;
 const ISSUER_PUBLIC = `${PUBLIC_BASE}/oidc/${TENANT}`;
 const CLIENT_ID = "demo-app";
+const CLIENT_ID2 = "demo-portal";
+// The two public auth-code clients, so SSO across them can be demonstrated.
+const AC_CLIENTS = { [CLIENT_ID]: "Demo App", [CLIENT_ID2]: "Portal" };
 const REDIRECT_URI = `http://localhost:${PORT}/callback`;
+const SCOPE = "openid profile email offline_access";
 const SERVICE_CLIENT_ID = "demo-service";
 const SERVICE_SCOPE = "api.read";
 let serviceSecret = "";
@@ -239,6 +243,14 @@ async function ensureClients() {
     pkce: "S256",
   });
 
+  await ensure(CLIENT_ID2, {
+    name: "Portal",
+    publicClient: true,
+    redirectUris: [REDIRECT_URI],
+    defaultScopes: ["openid", "profile", "email"],
+    pkce: "S256",
+  });
+
   const svc = await ensure(SERVICE_CLIENT_ID, {
     name: "Demo Service",
     publicClient: false,
@@ -263,7 +275,7 @@ const server = http.createServer(async (req, res) => {
         <div class="grant">
           <h3>${AC_NAME}</h3>
           <p>The IdP authenticates an <strong>end-user</strong> in the browser, then this app
-          swaps the code for tokens. Uses both front- and back-channel.</p>
+          swaps the code for tokens. Sign in once, then open a second app with no prompt (SSO).</p>
           <a class="btn" href="/login">Run flow →</a>
         </div>
         <div class="grant">
@@ -333,11 +345,13 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (url.pathname === "/login") {
+    const requested = url.searchParams.get("client");
+    const clientId = AC_CLIENTS[requested] ? requested : CLIENT_ID;
     const { verifier, challenge } = makePkce();
     const state = b64url(crypto.randomBytes(16));
     const authzParams = {
       response_type: "code",
-      client_id: CLIENT_ID,
+      client_id: clientId,
       redirect_uri: REDIRECT_URI,
       scope: SCOPE,
       state,
@@ -346,7 +360,7 @@ const server = http.createServer(async (req, res) => {
     };
     const authz = new URL(`${ISSUER_PUBLIC}/authorize`);
     authz.search = new URLSearchParams(authzParams).toString();
-    sessions.set(state, { verifier, authzParams });
+    sessions.set(state, { verifier, authzParams, clientId });
     res.writeHead(302, { location: authz.toString() });
     res.end();
     return;
@@ -381,7 +395,7 @@ const server = http.createServer(async (req, res) => {
       grant_type: "authorization_code",
       code,
       redirect_uri: REDIRECT_URI,
-      client_id: CLIENT_ID,
+      client_id: sess.clientId || CLIENT_ID,
       code_verifier: sess.verifier,
     };
     const tokenRes = await fetch(`${ISSUER}/oauth/token`, {
@@ -455,16 +469,21 @@ const server = http.createServer(async (req, res) => {
     );
 
     const idClaims = JSON.parse(Buffer.from(tok.id_token.split(".")[1], "base64url"));
+    const currentId = sess.clientId || CLIENT_ID;
+    const otherId = currentId === CLIENT_ID ? CLIENT_ID2 : CLIENT_ID;
 
     res.end(
       page(`
       <div class="pagehead">
         <h1>${AC_NAME}</h1>
         <div class="actions">
-          <a class="btn" href="/login">Log in again</a>
+          <a class="btn teal" href="/login?client=${otherId}">Open ${AC_CLIENTS[otherId]} via SSO →</a>
+          <a class="btn ghost" href="/login?client=${currentId}">Log in again</a>
           <a class="btn ghost" href="/">← All grants</a>
         </div>
       </div>
+      <p class="muted">Signed into <strong>${AC_CLIENTS[currentId]}</strong>. Opening
+      <strong>${AC_CLIENTS[otherId]}</strong> reuses this SSO session — no second password prompt.</p>
       <div class="tabs">
         <input type="radio" name="tab" id="tab-flow" checked>
         <input type="radio" name="tab" id="tab-decoded">

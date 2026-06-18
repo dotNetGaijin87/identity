@@ -3,9 +3,13 @@ package oidc
 import (
 	"context"
 	"html/template"
+	"net"
 	"net/http"
 	"strings"
+	"time"
 )
+
+const ssoCookieName = "idp_sso"
 
 var loginTmpl = template.Must(template.New("login").Parse(`<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -41,8 +45,9 @@ var loginTmpl = template.Must(template.New("login").Parse(`<!doctype html>
 </body></html>`))
 
 type loginHandler struct {
-	storage     *Storage
-	callbackURL func(ctx context.Context, requestID string) string
+	storage       *Storage
+	callbackURL   func(ctx context.Context, requestID string) string
+	secureCookies bool
 }
 
 func (h *loginHandler) render(w http.ResponseWriter, status int, id, errMsg string) {
@@ -56,7 +61,24 @@ func (h *loginHandler) render(w http.ResponseWriter, status int, id, errMsg stri
 }
 
 func (h *loginHandler) show(w http.ResponseWriter, r *http.Request) {
-	h.render(w, http.StatusOK, r.URL.Query().Get("authRequestID"), "")
+	id := r.URL.Query().Get("authRequestID")
+	// SSO: if a valid session cookie is present, authorize this request without
+	// showing the form. The provider sent us here because the auth request isn't
+	// yet done; we complete it from the existing session.
+	if ar := h.storage.getAuthRequest(id); ar != nil {
+		if c, err := r.Cookie(ssoCookieName); err == nil && c.Value != "" {
+			sid, userID, ok, err := h.storage.sessions.Resolve(r.Context(), c.Value)
+			if err == nil && ok {
+				if _, found, _ := h.storage.users.UserByID(r.Context(), userID); found {
+					_ = h.storage.sessions.RecordClient(r.Context(), sid, ar.clientID)
+					h.storage.markAuthorized(id, userID.String())
+					h.finish(w, r, id)
+					return
+				}
+			}
+		}
+	}
+	h.render(w, http.StatusOK, id, "")
 }
 
 func (h *loginHandler) submit(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +87,8 @@ func (h *loginHandler) submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := r.FormValue("authRequestID")
-	if h.storage.getAuthRequest(id) == nil {
+	ar := h.storage.getAuthRequest(id)
+	if ar == nil {
 		http.Error(w, "unknown auth request", http.StatusBadRequest)
 		return
 	}
@@ -78,12 +101,46 @@ func (h *loginHandler) submit(w http.ResponseWriter, r *http.Request) {
 		h.render(w, http.StatusUnauthorized, id, "Invalid username or password")
 		return
 	}
+
+	// Establish an SSO session so subsequent /authorize for other clients skip the
+	// form. A session-store failure must not block the login, so it's best-effort.
+	if token, sid, expiresAt, err := h.storage.sessions.Start(r.Context(), h.storage.tenant.ID, user.ID, r.UserAgent(), clientIP(r)); err == nil {
+		h.setSSOCookie(w, token, expiresAt)
+		_ = h.storage.sessions.RecordClient(r.Context(), sid, ar.clientID)
+	}
+
 	h.storage.markAuthorized(id, user.ID.String())
-	// op returns a root-relative callback path, but the provider is mounted under
-	// the issuer's path (/oidc/{tenant}), so prepend the issuer to keep it routable.
+	h.finish(w, r, id)
+}
+
+// finish redirects back into the provider's authorize flow to mint the code.
+// op returns a root-relative callback path, but the provider is mounted under the
+// issuer's path (/oidc/{tenant}), so prepend the issuer to keep it routable.
+func (h *loginHandler) finish(w http.ResponseWriter, r *http.Request, id string) {
 	callback := h.callbackURL(r.Context(), id)
 	if !strings.HasPrefix(callback, "http") {
 		callback = h.storage.issuer + callback
 	}
 	http.Redirect(w, r, callback, http.StatusFound)
+}
+
+func (h *loginHandler) setSSOCookie(w http.ResponseWriter, token string, expiresAt time.Time) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     ssoCookieName,
+		Value:    token,
+		Path:     "/oidc/" + h.storage.tenant.Name,
+		HttpOnly: true,
+		Secure:   h.secureCookies,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  expiresAt,
+		MaxAge:   int(time.Until(expiresAt).Seconds()),
+	})
+}
+
+// clientIP strips the port from RemoteAddr (set by the RealIP middleware).
+func clientIP(r *http.Request) string {
+	if host, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+		return host
+	}
+	return r.RemoteAddr
 }

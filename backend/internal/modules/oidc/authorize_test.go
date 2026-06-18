@@ -42,7 +42,7 @@ func (f fakeClientStore) ClientByClientID(_ context.Context, _ uuid.UUID, client
 }
 
 func newGuard(clients ClientStore) (http.HandlerFunc, *bool) {
-	st := newStorage(nil, TenantRef{ID: uuid.New(), Name: "acme"}, "http://localhost:8080/oidc/acme", clients, nil)
+	st := newStorage(nil, TenantRef{ID: uuid.New(), Name: "acme"}, "http://localhost:8080/oidc/acme", clients, nil, nil)
 	passed := false
 	next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		passed = true

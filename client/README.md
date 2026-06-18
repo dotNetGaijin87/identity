@@ -6,13 +6,15 @@ console, which manages the IdP).
 
 - Zero dependencies (Node 20+ built-ins only).
 - **Auto-registers** its clients in the `acme` tenant on startup:
-  - `demo-app` — public client, PKCE, redirect `http://localhost:3000/callback` (auth-code flow).
+  - `demo-app` / `demo-portal` — two public auth-code clients (PKCE, redirect
+    `http://localhost:3000/callback`), so **SSO** across apps can be demonstrated.
   - `demo-service` — confidential service-account client (client-credentials flow); its secret is
     read back from the management API.
 - Runs two grants, each on its own inspector page:
   - **Authorization Code + PKCE** — the IdP authenticates an end-user in the browser, then the app
     swaps the code for tokens server-side (front- and back-channel). Decoded ID-token claims and
-    UserInfo are shown on a second tab.
+    UserInfo are shown on a second tab. After signing in, "Open Portal via SSO" opens the second
+    client with **no second password prompt** (the IdP sets an SSO session cookie).
   - **Client Credentials** — the app authenticates as itself with its secret and gets an access
     token directly (back-channel only, no user).
 

@@ -1,10 +1,3 @@
-// Package oidc is the OpenID Connect provider — the tokens this IdP issues to
-// client apps (distinct from the admin console's own cookie login). Built on
-// github.com/zitadel/oidc; we supply storage (clients/users/keys) and the login page.
-//
-// Multi-tenant by issuer path: each tenant has its own issuer
-// (e.g. http://host/oidc/acme) and a tenant-scoped provider, built lazily and
-// cached. Two tenants can therefore reuse the same client_id.
 package oidc
 
 import (
@@ -18,29 +11,33 @@ import (
 )
 
 type Module struct {
-	baseURL string
-	tenants TenantResolver
-	clients ClientStore
-	users   UserStore
-	signing *signingKey
+	baseURL       string
+	tenants       TenantResolver
+	clients       ClientStore
+	users         UserStore
+	sessions      SessionStore
+	signing       *signingKey
+	secureCookies bool
 
 	mu      sync.Mutex
 	engines map[string]http.Handler // tenant name -> composed handler (login + provider)
 }
 
 // Each tenant's issuer is baseURL + "/oidc/" + name.
-func New(baseURL string, tenants TenantResolver, clients ClientStore, users UserStore) (*Module, error) {
+func New(baseURL string, tenants TenantResolver, clients ClientStore, users UserStore, sessions SessionStore, secureCookies bool) (*Module, error) {
 	signing, err := newSigningKey("sig-1")
 	if err != nil {
 		return nil, err
 	}
 	return &Module{
-		baseURL: baseURL,
-		tenants: tenants,
-		clients: clients,
-		users:   users,
-		signing: signing,
-		engines: make(map[string]http.Handler),
+		baseURL:       baseURL,
+		tenants:       tenants,
+		clients:       clients,
+		users:         users,
+		sessions:      sessions,
+		signing:       signing,
+		secureCookies: secureCookies,
+		engines:       make(map[string]http.Handler),
 	}, nil
 }
 
@@ -76,13 +73,13 @@ func (m *Module) engineFor(ref TenantRef) (http.Handler, error) {
 	}
 
 	issuer := m.baseURL + "/oidc/" + ref.Name
-	storage := newStorage(m.signing, ref, issuer, m.clients, m.users)
+	storage := newStorage(m.signing, ref, issuer, m.clients, m.users, m.sessions)
 	provider, err := op.NewProvider(newConfig(), storage, op.StaticIssuer(issuer), op.WithAllowInsecure())
 	if err != nil {
 		return nil, err
 	}
 
-	login := &loginHandler{storage: storage, callbackURL: op.AuthCallbackURL(provider)}
+	login := &loginHandler{storage: storage, callbackURL: op.AuthCallbackURL(provider), secureCookies: m.secureCookies}
 
 	router := chi.NewRouter()
 	router.Get("/login", login.show)

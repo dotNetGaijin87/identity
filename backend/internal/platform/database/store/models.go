@@ -86,3 +86,23 @@ type UserRole struct {
 	UserID uuid.UUID
 	RoleID uuid.UUID
 }
+
+type UserSession struct {
+	ID         uuid.UUID
+	TenantID   uuid.UUID
+	UserID     uuid.UUID
+	TokenHash  string
+	UserAgent  string
+	IpAddress  string
+	CreatedAt  time.Time
+	LastSeenAt time.Time
+	ExpiresAt  time.Time
+	RevokedAt  pgtype.Timestamptz
+}
+
+type UserSessionClient struct {
+	SessionID   uuid.UUID
+	ClientID    string
+	FirstSeenAt time.Time
+	LastSeenAt  time.Time
+}

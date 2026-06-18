@@ -67,6 +67,9 @@ export function AdminLayout() {
             <NavLink to={`/tenants/${tenantId}/clients`} className={tabClass}>
               Clients
             </NavLink>
+            <NavLink to={`/tenants/${tenantId}/sessions`} className={tabClass}>
+              Sessions
+            </NavLink>
             <NavLink to={`/tenants/${tenantId}/settings`} className={tabClass}>
               Settings
             </NavLink>

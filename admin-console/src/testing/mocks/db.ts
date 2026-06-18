@@ -58,6 +58,19 @@ export const db = factory({
     email: String,
     password: String,
   },
+  userSession: {
+    id: primaryKey(String),
+    tenantId: String,
+    userId: String,
+    username: String,
+    ipAddress: String,
+    userAgent: String,
+    createdAt: Number,
+    lastSeenAt: Number,
+    expiresAt: Number,
+    // @mswjs/data has no array field type; clients are stored as a JSON string.
+    clientsJson: String,
+  },
 });
 
 // Monotonic, so ids/timestamps stay deterministic across test runs.
@@ -88,6 +101,7 @@ export const session = {
 };
 
 function drain() {
+  db.userSession.deleteMany({ where: {} });
   db.user.deleteMany({ where: {} });
   db.client.deleteMany({ where: {} });
   db.role.deleteMany({ where: {} });
@@ -175,7 +189,7 @@ export function seedDb() {
     createdAt: nextTime(),
   });
 
-  db.user.create({
+  const jdoe = db.user.create({
     id: uid('user'),
     tenantId: acme.id,
     username: 'jdoe',
@@ -185,6 +199,26 @@ export function seedDb() {
     enabled: true,
     createdAt: nextTime(),
     roles: [roles[0]!, roles[2]!],
+  });
+
+  db.userSession.create({
+    id: uid('session'),
+    tenantId: acme.id,
+    userId: jdoe.id,
+    username: jdoe.username,
+    ipAddress: '203.0.113.7',
+    userAgent: 'Mozilla/5.0',
+    createdAt: nextTime(),
+    lastSeenAt: nextTime(),
+    expiresAt: clock + 7 * 24 * 60 * 60 * 1000,
+    clientsJson: JSON.stringify([
+      {
+        clientId: 'account-console',
+        clientName: 'Account Console',
+        firstSeenAt: clock,
+        lastSeenAt: clock,
+      },
+    ]),
   });
   db.user.create({
     id: uid('user'),
