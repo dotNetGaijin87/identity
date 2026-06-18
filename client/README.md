@@ -1,13 +1,20 @@
 # Demo Client (OIDC relying party)
 
-A tiny app that logs an **end-user** into a tenant via the IdP — to test the full
-OpenID Connect flow (distinct from the admin console, which is for managing the IdP).
+A tiny app that exercises the IdP's OIDC endpoints and **inspects every message** exchanged —
+a sequence diagram plus a request/response timeline for each grant (distinct from the admin
+console, which manages the IdP).
 
 - Zero dependencies (Node 20+ built-ins only).
-- **Auto-registers** itself as a public client (`demo-app`, redirect
-  `http://localhost:3000/callback`, PKCE) in the `acme` tenant on startup.
-- Runs the **authorization-code + PKCE** flow; the code→token exchange happens
-  server-side, so there are no browser CORS concerns.
+- **Auto-registers** its clients in the `acme` tenant on startup:
+  - `demo-app` — public client, PKCE, redirect `http://localhost:3000/callback` (auth-code flow).
+  - `demo-service` — confidential service-account client (client-credentials flow); its secret is
+    read back from the management API.
+- Runs two grants, each on its own inspector page:
+  - **Authorization Code + PKCE** — the IdP authenticates an end-user in the browser, then the app
+    swaps the code for tokens server-side (front- and back-channel). Decoded ID-token claims and
+    UserInfo are shown on a second tab.
+  - **Client Credentials** — the app authenticates as itself with its secret and gets an access
+    token directly (back-channel only, no user).
 
 ## Run
 
@@ -17,25 +24,30 @@ OpenID Connect flow (distinct from the admin console, which is for managing the 
    cd idp/client
    node server.mjs        #  → http://localhost:3000
    ```
-3. Open **http://localhost:3000**, click **“Log in with the IdP”**, and sign in on the
-   IdP's hosted page as the demo end-user **`jdoe` / `password`**.
-4. You'll be redirected back and shown the user's **UserInfo**, **ID-token claims**, and the
-   issued **tokens**.
+3. Open **http://localhost:3000** and pick a grant:
+   - **Authorization Code + PKCE** — sign in on the IdP's hosted page as the demo end-user
+     **`jdoe` / `password`**; you're redirected back to the flow inspector (diagram, every message,
+     and the decoded tokens on a second tab).
+   - **Client Credentials** — runs immediately and shows the two-message back-channel exchange.
 
 ## What it demonstrates
 
+**Authorization Code + PKCE**
 ```
 browser → /login → IdP /authorize → IdP hosted login (jdoe/password)
         → /callback → POST /oauth/token (PKCE) → GET /userinfo → render
 ```
 
+**Client Credentials**
+```
+/cc → POST /oauth/token (client_id + secret) → access token → render
+```
+
 ## Config (env vars, all optional)
 
-| Var | Default | Meaning |
-|-----|---------|---------|
-| `PORT` | `3000` | this app's port (must match the registered redirect URI) |
-| `API_URL` | `http://localhost:8080` | the IdP backend |
-| `TENANT` | `acme` | which tenant's issuer to log into (`/oidc/{tenant}`) |
-
-> The end-user (`jdoe`) is different from the admin console login (`admin`). The admin
-> manages the IdP; `jdoe` is a user *of the acme tenant* that apps authenticate.
+| Var           | Default                 | Meaning                                                            |
+| ------------- | ----------------------- | ----------------------------------------------------------------- |
+| `PORT`        | `3000`                  | this app's port (must match the registered redirect URI)          |
+| `API_URL`     | `http://localhost:8080` | the IdP backend, for server-side calls (token, userinfo, admin)   |
+| `PUBLIC_BASE` | `$API_URL`              | browser-facing issuer origin for redirects (differs under Docker) |
+| `TENANT`      | `acme`                  | which tenant's issuer to use (`/oidc/{tenant}`)                    |

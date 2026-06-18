@@ -22,14 +22,14 @@ idp/
     discovery + JWKS, `/authorize` → hosted login (PKCE), `/token` (code + refresh), `/userinfo`.
 
 Two distinct auth contexts: the **console** logs admins in via a session cookie (BFF); the **OIDC
-provider** issues tokens to *client apps* for *their* end-users.
+provider** issues tokens to _client apps_ for _their_ end-users.
 
 ## Screenshots
 
-**Admin console** (dark theme) — tenants, and a user's role assignment:
+**Admin console** — tenants, and a user's role assignment:
 
-| Tenants | Role assignment |
-| :---: | :---: |
+|                   Tenants                   |                    Role assignment                     |
+| :-----------------------------------------: | :----------------------------------------------------: |
 | ![Tenants](docs/screenshots/02-tenants.png) | ![Role assignment](docs/screenshots/04-user-roles.png) |
 
 OIDC client settings (redirect URIs, grant types, PKCE, token lifetimes, secret):
@@ -41,12 +41,12 @@ a sequence diagram plus a request/response timeline. Two grants are wired — **
 PKCE** (an end-user logs in via the IdP's hosted login) and **client credentials** (the app
 authenticates as itself, no user):
 
-| Demo app — pick a grant | IdP hosted login (auth-code) |
-| :---: | :---: |
+|            Demo app — pick a grant            |          IdP hosted login (auth-code)           |
+| :-------------------------------------------: | :---------------------------------------------: |
 | ![Demo app](docs/screenshots/06-demo-app.png) | ![IdP login](docs/screenshots/07-idp-login.png) |
 
-| Authorization code + PKCE — flow + every message | Client credentials — back-channel only |
-| :---: | :---: |
+|     Authorization code + PKCE — flow + every message     |              Client credentials — back-channel only               |
+| :------------------------------------------------------: | :---------------------------------------------------------------: |
 | ![Authorization code](docs/screenshots/08-signed-in.png) | ![Client credentials](docs/screenshots/09-client-credentials.png) |
 
 ## Run everything with Docker (easiest)
@@ -58,8 +58,9 @@ docker compose up --build
 ```
 
 Then open:
+
 - **http://localhost:5173** — admin console (sign in **`admin` / `admin`**)
-- **http://localhost:3000** — demo app; click *Log in with the IdP* and sign in as the end-user
+- **http://localhost:3000** — demo app; click _Log in with the IdP_ and sign in as the end-user
   **`jdoe` / `password`**
 - **http://localhost:8080** — the IdP API / OIDC issuer (`/oidc/{tenant}`)
 
@@ -72,18 +73,21 @@ compose up`. Stop with `Ctrl-C`; `docker compose down -v` also wipes the databas
 Prereqs: **Docker Desktop** (just for Postgres), **Go 1.26+**, **Node 20+**.
 
 **Terminal 1 — backend (from `backend/`):** the binary self-migrates, so no goose step.
+
 ```bash
 docker compose up -d db        # Postgres only
 go run ./cmd/api               # http://localhost:8080  (migrates + seeds, then serves)
 ```
 
 **Terminal 2 — console (from `admin-console/`):**
+
 ```bash
 npm install
 npm run dev          # http://localhost:5173
 ```
 
 **Terminal 3 — demo client (from `client/`):**
+
 ```bash
 node server.mjs      # http://localhost:3000
 ```
