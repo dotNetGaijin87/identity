@@ -36,12 +36,18 @@ OIDC client settings (redirect URIs, grant types, PKCE, token lifetimes, secret)
 
 ![Client settings](docs/screenshots/05-client-settings.png)
 
-**End-user OIDC login** via the demo client — the IdP's hosted login, then the app
-receiving the user's claims and tokens:
+**Demo relying party** — pick a grant to run, then inspect every message exchanged with the IdP:
+a sequence diagram plus a request/response timeline. Two grants are wired — **authorization code +
+PKCE** (an end-user logs in via the IdP's hosted login) and **client credentials** (the app
+authenticates as itself, no user):
 
-| IdP hosted login | Signed in (claims + tokens) |
+| Demo app — pick a grant | IdP hosted login (auth-code) |
 | :---: | :---: |
-| ![IdP login](docs/screenshots/07-idp-login.png) | ![Signed in](docs/screenshots/08-signed-in.png) |
+| ![Demo app](docs/screenshots/06-demo-app.png) | ![IdP login](docs/screenshots/07-idp-login.png) |
+
+| Authorization code + PKCE — flow + every message | Client credentials — back-channel only |
+| :---: | :---: |
+| ![Authorization code](docs/screenshots/08-signed-in.png) | ![Client credentials](docs/screenshots/09-client-credentials.png) |
 
 ## Run everything with Docker (easiest)
 
@@ -96,5 +102,4 @@ cd backend       && go test ./...    # Go service tests (no DB needed)
 
 The console talks only to the backend (Vite proxies `/api → :8080`; MSW is used only by the test
 suite). Each package has its own `README.md` with details. Known follow-ups (documented in
-`backend/README.md`): OIDC keys/tokens are in-memory (single-instance dev), and the
-`client_credentials` grant is not yet wired.
+`backend/README.md`): OIDC keys/tokens are in-memory (single-instance dev).
