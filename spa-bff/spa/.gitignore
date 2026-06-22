@@ -1,11 +1,6 @@
 node_modules
 dist
-coverage
-playwright-report
-test-results
 *.local
-.env
-.DS_Store
 
 # Local TLS-intercepting proxy/AV root CA — machine-specific, provided per dev (see ca/README.md)
 ca/*.crt

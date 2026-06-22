@@ -64,5 +64,26 @@ services:
       backend:
         condition: service_healthy
 
+  # SPA + BFF demo: a React SPA that talks only to its BFF, which runs OIDC
+  # auth-code+PKCE and visualizes the live cookie/token state.  → http://localhost:4000
+  bff:
+    build: ./spa-bff/bff
+    environment:
+      PORT: "4001"
+      API_URL: http://backend:8080                          # server-side calls to the IdP
+      PUBLIC_BASE: http://localhost:${BACKEND_PORT:-8080}    # browser-facing issuer for redirects
+      PUBLIC_ORIGIN: http://localhost:${SPA_PORT:-4000}      # where the browser reaches the SPA/BFF
+      TENANT: acme
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  spa:
+    build: ./spa-bff/spa
+    ports:
+      - "${SPA_PORT:-4000}:80"
+    depends_on:
+      - bff
+
 volumes:
   pgdata:
