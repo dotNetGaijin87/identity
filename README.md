@@ -44,16 +44,15 @@ with one-click revoke:
 
 ![Sessions](docs/screenshots/10-sessions.png)
 
-**Demo relying party** — pick a grant to run, then inspect every message exchanged with the IdP:
-a sequence diagram plus a request/response timeline. Two grants are wired — **authorization code +
-PKCE** (an end-user logs in via the IdP's hosted login) and **client credentials** (the app
-authenticates as itself, no user):
+**Demo relying party** — pick a grant to run against the IdP. Two grants are wired —
+**authorization code + PKCE** (an end-user logs in via the IdP's hosted login) and **client
+credentials** (the app authenticates as itself, no user):
 
 |            Demo app — pick a grant            |          IdP hosted login (auth-code)           |
 | :-------------------------------------------: | :---------------------------------------------: |
 | ![Demo app](docs/screenshots/06-demo-app.png) | ![IdP login](docs/screenshots/07-idp-login.png) |
 
-|     Authorization code + PKCE — flow + every message     |              Client credentials — back-channel only               |
+|     Authorization code + PKCE — end-user signed in       |              Client credentials — back-channel only               |
 | :------------------------------------------------------: | :---------------------------------------------------------------: |
 | ![Authorization code](docs/screenshots/08-signed-in.png) | ![Client credentials](docs/screenshots/09-client-credentials.png) |
 

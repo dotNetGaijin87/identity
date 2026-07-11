@@ -1,7 +1,6 @@
 # Demo Client (OIDC relying party)
 
-A tiny app that exercises the IdP's OIDC endpoints and **inspects every message** exchanged —
-a sequence diagram plus a request/response timeline for each grant (distinct from the admin
+A tiny app that exercises the IdP's OIDC endpoints for each grant (distinct from the admin
 console, which manages the IdP).
 
 - Zero dependencies (Node 20+ built-ins only).
@@ -10,10 +9,10 @@ console, which manages the IdP).
     `http://localhost:3000/callback`), so **SSO** across apps can be demonstrated.
   - `demo-service` — confidential service-account client (client-credentials flow); its secret is
     read back from the management API.
-- Runs two grants, each on its own inspector page:
+- Runs two grants, each on its own page:
   - **Authorization Code + PKCE** — the IdP authenticates an end-user in the browser, then the app
     swaps the code for tokens server-side (front- and back-channel). Decoded ID-token claims and
-    UserInfo are shown on a second tab. After signing in, "Open Portal via SSO" opens the second
+    UserInfo are shown on the result page. After signing in, "Open Portal via SSO" opens the second
     client with **no second password prompt** (the IdP sets an SSO session cookie).
   - **Client Credentials** — the app authenticates as itself with its secret and gets an access
     token directly (back-channel only, no user).
@@ -28,9 +27,9 @@ console, which manages the IdP).
    ```
 3. Open **http://localhost:3000** and pick a grant:
    - **Authorization Code + PKCE** — sign in on the IdP's hosted page as the demo end-user
-     **`jdoe` / `password`**; you're redirected back to the flow inspector (diagram, every message,
-     and the decoded tokens on a second tab).
-   - **Client Credentials** — runs immediately and shows the two-message back-channel exchange.
+     **`jdoe` / `password`**; you're redirected back and the decoded ID-token claims and UserInfo
+     are shown.
+   - **Client Credentials** — runs immediately and shows the access token it received.
 
 ## What it demonstrates
 
