@@ -1,8 +1,0 @@
-node_modules
-dist
-*.local
-
-# Local TLS-intercepting proxy/AV root CA — machine-specific, provided per dev (see ca/README.md)
-ca/*.crt
-ca/*.pem
-ca/*.der
